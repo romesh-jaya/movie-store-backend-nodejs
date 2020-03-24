@@ -13,5 +13,6 @@ module.exports = {
         "sourceType": "module"
     },
     "rules": {
+        "react-hooks/exhaustive-deps": n
     }
 };

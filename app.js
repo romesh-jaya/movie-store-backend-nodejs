@@ -3,6 +3,7 @@ const bodyParser = require("body-parser");
 
 //Routes
 const moviesRoutes = require("./routes/movies");
+const settingsRoutes = require("./routes/settings");
 
 const app = express();
 
@@ -28,5 +29,6 @@ app.get('/', function (req, res) {
 });
 
 app.use("/movies", moviesRoutes);
+app.use("/settings", settingsRoutes);
 
 module.exports = app;
