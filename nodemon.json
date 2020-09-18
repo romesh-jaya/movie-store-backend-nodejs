@@ -1,5 +1,6 @@
 {
   "env": {
+    "MONGOENDPOINT": "mongodb+srv://rom:rom@cluster0-mbq3n.mongodb.net/movie-shop?retryWrites=true",
     "STARTPORT": 3000
   }
 }

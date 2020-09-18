@@ -1,11 +1,34 @@
 const express = require("express");
 const bodyParser = require("body-parser");
+const mongoose = require("mongoose");
 
 //Routes
 const moviesRoutes = require("./routes/movies");
 const settingsRoutes = require("./routes/settings");
 
 const app = express();
+
+mongoose.set('useNewUrlParser', true);
+mongoose.set('useFindAndModify', false);
+mongoose.set('useCreateIndex', true);
+mongoose.set('useUnifiedTopology', true);
+// Following prints queries
+mongoose.set("debug", (collectionName, method, query, doc) => {
+    const currentTime = new Date();
+    console.log(`${currentTime.toDateString()} ${currentTime.toLocaleTimeString()} ${collectionName}.${method}`, JSON.stringify(query), doc);
+});
+
+mongoose
+    .connect(
+        process.env.MONGOENDPOINT
+    )
+    .then(() => {
+        console.log("Connected to database!");
+    })
+    .catch(() => {
+        console.log("Connection failed, exiting!");
+        process.exit(-1);
+    });
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
