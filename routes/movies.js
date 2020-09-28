@@ -5,9 +5,39 @@ const Movie = require('../models/movie');
 router.get('', (req, res) => {
   const searchTitle = req.query.searchTitle;
   const searchType = req.query.searchType;
-  const searchYear = req.query.searchYear;
+  const searchYearExact = req.query.searchYearExact;
+  const searchYearFrom = req.query.searchYearFrom;
+  const searchYearTo = req.query.searchYearTo;
 
   const aggregations = [];
+
+  if (
+    !(
+      searchYearExact ||
+      searchYearFrom ||
+      searchYearTo ||
+      searchTitle ||
+      searchType
+    )
+  ) {
+    return res.status(500).json({
+      message:
+        'Retrieving movies failed (search) : ' +
+        'At least one search field must be defined.',
+    });
+  }
+
+  if (
+    (searchYearExact && isNaN(searchYearExact)) ||
+    (searchYearFrom && isNaN(searchYearFrom)) ||
+    (searchYearTo && isNaN(searchYearTo))
+  ) {
+    return res.status(500).json({
+      message:
+        'Retrieving movies failed (search) : ' +
+        'Error converting string to number in year data',
+    });
+  }
 
   if (searchTitle) {
     aggregations.push({ $match: { title: new RegExp(searchTitle, 'i') } });
@@ -15,10 +45,16 @@ router.get('', (req, res) => {
   if (searchType) {
     aggregations.push({ $match: { type: new RegExp(searchType, 'i') } });
   }
-  if (searchYear) {
-    // convert year column to a number for query purpose to temp column 'compareStr'
-    aggregations.push({ $addFields: { compareStr: { $toString: '$year' } } });
-    aggregations.push({ $match: { compareStr: new RegExp(searchYear) } });
+
+  if (searchYearExact) {
+    aggregations.push({ $match: { year: { $eq: searchYearExact } } });
+  } else if (searchYearFrom && searchYearTo) {
+    aggregations.push({ $match: { year: { $gt: searchYearFrom } } });
+    aggregations.push({ $match: { year: { $lt: searchYearTo } } });
+  } else if (searchYearFrom) {
+    aggregations.push({ $match: { year: { $gt: searchYearFrom } } });
+  } else if (searchYearTo) {
+    aggregations.push({ $match: { year: { $lt: searchYearTo } } });
   }
 
   //Use aggregate as we need facet for obtaining count
@@ -36,7 +72,7 @@ router.get('', (req, res) => {
 router.get('/:id', (req, res) => {
   Movie.findOne({ imdbID: req.params.id })
     .then((savedMovie) => {
-      res.status(200).json({ count: savedMovie.count });
+      res.status(200).json({ count: savedMovie.count, id: savedMovie._id });
     })
     .catch(() => {
       res.status(200).json({ count: 0 });
