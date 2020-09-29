@@ -8,8 +8,18 @@ router.get('', (req, res) => {
   const searchYearExact = req.query.searchYearExact;
   const searchYearFrom = req.query.searchYearFrom;
   const searchYearTo = req.query.searchYearTo;
+  const pageSize = +req.query.pageSize;
+  const currentPage = +req.query.page;
 
   const aggregations = [];
+
+  if (pageSize < 1 || currentPage < 0) {
+    return res.status(500).json({
+      message:
+        'Retrieving movies failed (search) : ' +
+        'Valid pagesize, page no must be specified.',
+    });
+  }
 
   if (
     !(
@@ -56,6 +66,19 @@ router.get('', (req, res) => {
   } else if (searchYearTo) {
     aggregations.push({ $match: { year: { $lt: searchYearTo } } });
   }
+
+  aggregations.push({ $sort: { title: 1 } });
+
+  aggregations.push({
+    $facet: {
+      movies: [{ $skip: pageSize * currentPage }, { $limit: pageSize }],
+      movieCount: [
+        {
+          $count: 'count',
+        },
+      ],
+    },
+  });
 
   //Use aggregate as we need facet for obtaining count
   Movie.aggregate(aggregations)
