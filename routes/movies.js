@@ -82,8 +82,14 @@ router.get('', (req, res) => {
 
   //Use aggregate as we need facet for obtaining count
   Movie.aggregate(aggregations)
-    .then((movies) => {
-      res.status(200).json(movies);
+    .then((movieData) => {
+      // rename _id to id
+      const movies = movieData[0].movies.map((doc) => ({
+        ...doc,
+        id: doc._id,
+      }));
+      const newRetVal = { movies, movieCount: movieData[0].movieCount };
+      res.status(200).json({ movies: newRetVal });
     })
     .catch((error) => {
       return res.status(500).json({
@@ -136,6 +142,18 @@ router.patch('', (req, res) => {
     .catch((error) => {
       return res.status(500).json({
         message: 'Updating movie failed: ' + error.message,
+      });
+    });
+});
+
+router.delete('', (req, res) => {
+  Movie.deleteMany({ _id: { $in: req.query.idArray } })
+    .then(() => {
+      res.status(200).json({ message: 'Delete successful!' });
+    })
+    .catch((error) => {
+      return res.status(500).json({
+        message: 'Deleting movie failed: ' + error.message,
       });
     });
 });
