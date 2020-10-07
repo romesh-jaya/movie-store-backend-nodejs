@@ -8,6 +8,7 @@ router.get('', (req, res) => {
   const searchYearExact = req.query.searchYearExact;
   const searchYearFrom = req.query.searchYearFrom;
   const searchYearTo = req.query.searchYearTo;
+  const searchGenres = req.query.searchGenres;
   const pageSize = +req.query.pageSize;
   const currentPage = +req.query.page;
 
@@ -27,7 +28,8 @@ router.get('', (req, res) => {
       searchYearFrom ||
       searchYearTo ||
       searchTitle ||
-      searchType
+      searchType ||
+      searchGenres
     )
   ) {
     return res.status(500).json({
@@ -54,6 +56,15 @@ router.get('', (req, res) => {
   }
   if (searchType) {
     aggregations.push({ $match: { type: new RegExp(searchType, 'i') } });
+  }
+  if (searchGenres) {
+    aggregations.push({
+      $match: {
+        genre: {
+          $in: searchGenres,
+        },
+      },
+    });
   }
 
   if (searchYearExact) {
