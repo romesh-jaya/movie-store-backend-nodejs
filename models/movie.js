@@ -1,14 +1,15 @@
 const mongoose = require('mongoose');
 
 const movieSchema = mongoose.Schema({
-  imdbID: { type: String, required: true, unique: true },
+  addedOn: { type: Date, required: true },
   count: { type: Number, required: true },
-  title: { type: String, required: true },
-  year: { type: String, required: true },
-  type: { type: String, required: true },
+  genre: { type: [String], required: true },
+  imdbID: { type: String, required: true, unique: true },
+  languages: { type: [String], required: true },
   pGRating: { type: String, required: true },
-  language: { type: String, required: true },
-  genre: { type: [String], required: true }
+  title: { type: String, required: true },
+  type: { type: String, required: true },
+  year: { type: String, required: true },
 });
 
 var handleE11000 = function (error, res, next) {

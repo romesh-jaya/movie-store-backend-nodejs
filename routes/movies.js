@@ -95,10 +95,14 @@ router.get('', (req, res) => {
   Movie.aggregate(aggregations)
     .then((movieData) => {
       // rename _id to id
-      const movies = movieData[0].movies.map((doc) => ({
-        ...doc,
-        id: doc._id,
-      }));
+      const movies = movieData[0].movies.map((doc) => {
+        const newDoc = {
+          ...doc,
+          id: doc._id,
+        };
+        delete newDoc._id;
+        return newDoc;
+      });
       const newRetVal = { movies, movieCount: movieData[0].movieCount };
       res.status(200).json({ movies: newRetVal });
     })
@@ -127,9 +131,10 @@ router.post('', (req, res) => {
     year: req.body.year,
     type: req.body.type,
     pGRating: req.body.pGRating,
-    language: req.body.language,
+    languages: req.body.languages,
     genre: req.body.genre,
   });
+  movie.addedOn = new Date();
   movie
     .save()
     .then((savedMovie) => {
