@@ -113,7 +113,7 @@ router.get('', (req, res) => {
     });
 });
 
-router.get('/:id', (req, res) => {
+router.get('/imdbid/:id', (req, res) => {
   Movie.findOne({ imdbID: req.params.id })
     .then((savedMovie) => {
       res.status(200).json({ count: savedMovie.count, id: savedMovie._id });
