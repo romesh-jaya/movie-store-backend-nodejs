@@ -9,6 +9,7 @@ const movieSchema = mongoose.Schema({
   pGRating: { type: String, required: true },
   title: { type: String, required: true },
   type: { type: String, required: true },
+  // Note: year must be String type, as TV series store years in from-to format
   year: { type: String, required: true },
 });
 
