@@ -9,12 +9,17 @@ router.get('', (req, res) => {
   const searchYearFrom = req.query.searchYearFrom;
   const searchYearTo = req.query.searchYearTo;
   const searchGenres = req.query.searchGenres;
+  const searchLanguage = req.query.searchLanguage;
   const pageSize = +req.query.pageSize;
   const currentPage = +req.query.page;
+  const queryAll = req.query.queryAll;
 
   const aggregations = [];
 
-  if (pageSize < 1 || currentPage < 0) {
+  if (
+    !queryAll &&
+    (pageSize == null || currentPage == null || pageSize < 1 || currentPage < 0)
+  ) {
     return res.status(500).json({
       message:
         'Retrieving movies failed (search) : ' +
@@ -29,7 +34,8 @@ router.get('', (req, res) => {
       searchYearTo ||
       searchTitle ||
       searchType ||
-      searchGenres
+      searchGenres ||
+      searchLanguage
     )
   ) {
     return res.status(500).json({
@@ -57,6 +63,15 @@ router.get('', (req, res) => {
   if (searchType) {
     aggregations.push({ $match: { type: new RegExp(searchType, 'i') } });
   }
+  if (searchLanguage) {
+    aggregations.push({
+      $match: {
+        languages: {
+          $elemMatch: { $eq: searchLanguage },
+        },
+      },
+    });
+  }
   if (searchGenres) {
     aggregations.push({
       $match: {
@@ -80,9 +95,14 @@ router.get('', (req, res) => {
 
   aggregations.push({ $sort: { title: 1 } });
 
+  // pass in all movie documents if queryAll === true
+  const moviesVal = queryAll
+    ? [{ $match: { _id: { $exists: true } } }]
+    : [{ $skip: pageSize * currentPage }, { $limit: pageSize }];
+
   aggregations.push({
     $facet: {
-      movies: [{ $skip: pageSize * currentPage }, { $limit: pageSize }],
+      movies: moviesVal,
       movieCount: [
         {
           $count: 'count',
@@ -101,6 +121,7 @@ router.get('', (req, res) => {
           id: doc._id,
         };
         delete newDoc._id;
+        delete newDoc.__v;
         return newDoc;
       });
       const newRetVal = { movies, movieCount: movieData[0].movieCount };
