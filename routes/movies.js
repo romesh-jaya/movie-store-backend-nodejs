@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const checkAdmin = require("../middleware/check-admin");
 const Movie = require('../models/movie');
 
 router.get('', (req, res) => {
@@ -148,7 +149,7 @@ router.get('/imdbid/:id', (req, res) => {
     });
 });
 
-router.post('', (req, res) => {
+router.post('', checkAdmin, (req, res) => {
   const movie = new Movie({
     imdbID: req.body.imdbID,
     count: req.body.count,
@@ -175,7 +176,7 @@ router.post('', (req, res) => {
     });
 });
 
-router.patch('', (req, res) => {
+router.patch('', checkAdmin, (req, res) => {
   Movie.findOneAndUpdate(
     { _id: req.body.id },
     { count: req.body.count, languages: req.body.languages }
@@ -190,7 +191,7 @@ router.patch('', (req, res) => {
     });
 });
 
-router.delete('', (req, res) => {
+router.delete('', checkAdmin, (req, res) => {
   Movie.deleteMany({ _id: { $in: req.query.idArray } })
     .then(() => {
       res.status(200).json({ message: 'Delete successful!' });

@@ -37,7 +37,7 @@ mongoose
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
-app.use((req, res, next) => {
+app.use((_, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader(
     'Access-Control-Allow-Headers',
@@ -51,7 +51,7 @@ app.use((req, res, next) => {
 });
 
 //Introduction message
-app.get('/', function (req, res) {
+app.get('/', function (_, res) {
   res.send('Node server is up.');
 });
 
@@ -60,17 +60,34 @@ var jwtCheck = jwt({
     cache: true,
     rateLimit: true,
     jwksRequestsPerMinute: 5,
-    jwksUri: 'https://movie-shop.us.auth0.com/.well-known/jwks.json',
+    jwksUri: process.env.JWKS_URI,
   }),
-  audience: 'https://movie-shop-backend',
-  issuer: 'https://movie-shop.us.auth0.com/',
+  audience: process.env.AUDIENCE,
+  issuer: process.env.ISSUER,
   algorithms: ['RS256'],
 });
 
 app.use(jwtCheck);
 
-app.get('/authorized', function (req, res) {
-  res.send('Secured Resource');
+app.use(function (req, res, next) {
+  // Custom claim is set in the access token via rules.
+  // Go to Auth0 dashboard -> Rules to see the following rule:
+  /*   
+   function (user, context, callback) {    
+    const namespace = 'https://movie-shop-backend';
+    context.accessToken[namespace + '/email'] = user.email;
+    callback(null, user, context);
+  } 
+  */
+  // Alternate is to pass in the id_token and decode it
+
+  const userEmail = req.user && req.user['https://movie-shop-backend/email'];
+  if (userEmail) {
+    // Append info to request for use in middleware
+    console.log('email: ', userEmail);
+    req.userEmail = userEmail;
+  }
+  next();
 });
 
 app.use('/movies', moviesRoutes);

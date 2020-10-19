@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const checkAdmin = require('../middleware/check-admin');
 const Setting = require('../models/setting');
 
 router.get('/:name', (req, res) => {
@@ -19,7 +20,7 @@ router.get('/:name', (req, res) => {
     });
 });
 
-router.patch('', (req, res) => {
+router.patch('', checkAdmin, (req, res) => {
   const data = req.body.data;
 
   if (!data) {
@@ -28,20 +29,23 @@ router.patch('', (req, res) => {
     });
   }
 
-  try {
-    data.forEach(async (dataOne) => {
-      await Setting.findOneAndUpdate(
-        { name: dataOne.name },
-        { value: dataOne.value },
-        { upsert: true }
-      ).exec();
+  const promiseArray = data.map((dataOne) =>
+    Setting.findOneAndUpdate(
+      { name: dataOne.name },
+      { value: dataOne.value },
+      { upsert: true }
+    )
+  );
+
+  Promise.all(promiseArray)
+    .then(() => {
+      return res.status(200).json({ message: 'Saving successful!' });
+    })
+    .catch((error) => {
+      res.status(500).json({
+        message: 'Saving failed: ' + error.message,
+      });
     });
-    res.status(200).json({ message: 'Saving successful!' });
-  } catch (error) {
-    res.status(500).json({
-      message: 'Saving failed: ' + error.message,
-    });
-  }
 });
 
 module.exports = router;
