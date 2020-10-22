@@ -5,6 +5,7 @@
     "ADMIN_USER": "admin@movie-shop.com",
     "AUDIENCE": "https://movie-shop-backend",
     "ISSUER": "https://movie-shop.us.auth0.com/",
-    "JWKS_URI": "https://movie-shop.us.auth0.com/.well-known/jwks.json"
+    "JWKS_URI": "https://movie-shop.us.auth0.com/.well-known/jwks.json",
+    "CONN_MODE": "HTTPS"
   }
 }
