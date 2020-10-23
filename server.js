@@ -6,7 +6,18 @@ const https = require('https');
 
 const isHttpsEnabled = process.env.CONN_MODE
   ? process.env.CONN_MODE === 'HTTPS'
-  : true;
+  : false;
+
+const key = fs.readFileSync(__dirname + '/certs/selfsigned.key');
+const cert = fs.readFileSync(__dirname + '/certs/selfsigned.crt');
+
+const options = {
+  key: key,
+  cert: cert,
+};
+
+const server = http.createServer(app);
+const httpsServer = https.createServer(options, app);
 
 const normalizePort = (val) => {
   var port = parseInt(val, 10);
@@ -53,19 +64,11 @@ const port = normalizePort(process.env.PORT || process.env.STARTPORT);
 app.set('port', port);
 
 if (isHttpsEnabled) {
-  const key = fs.readFileSync(__dirname + '/certs/selfsigned.key');
-  const cert = fs.readFileSync(__dirname + '/certs/selfsigned.crt');
-
-  const options = {
-    key: key,
-    cert: cert,
-  };
-
-  const httpsServer = https.createServer(options, app);
+  console.log('HTTPS server up on port ', port);
   httpsServer.listen(port);
 } else {
-  const server = http.createServer(app);
   server.on('error', onError);
   server.on('listening', onListening);
+  console.log('HTTP server up on port ', port);
   server.listen(port);
 }

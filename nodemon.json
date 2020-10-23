@@ -6,6 +6,6 @@
     "AUDIENCE": "https://movie-shop-backend",
     "ISSUER": "https://movie-shop.us.auth0.com/",
     "JWKS_URI": "https://movie-shop.us.auth0.com/.well-known/jwks.json",
-    "CONN_MODE": "HTTPS"
+    "CONN_MODE": "HTTP"
   }
 }
