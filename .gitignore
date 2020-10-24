@@ -32,8 +32,6 @@ speed-measure-plugin.json
 .history/*
 
 # misc
-/app.yaml
-nodemon.json
 /certs
 /.sass-cache
 /connect.lock
