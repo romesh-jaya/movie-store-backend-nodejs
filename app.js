@@ -67,7 +67,12 @@ var jwtCheck = jwt({
   algorithms: ['RS256'],
 });
 
-app.use(jwtCheck);
+app.use(jwtCheck, (err, req, res, next) => {
+  console.log('Invalid token provided');
+  if (err.name === 'UnauthorizedError') {
+    res.status(401).send('Invalid token provided');
+  }
+});
 
 app.use(function (req, res, next) {
   // Custom claim is set in the access token via rules.
