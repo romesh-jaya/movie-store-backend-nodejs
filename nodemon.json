@@ -1,6 +1,6 @@
 {
   "env": {
-    "MONGOENDPOINT": "mongodb+srv://rom:Thisismongo1@cluster0-mbq3n.mongodb.net/movie-shop?retryWrites=true",
+    "MONGOENDPOINT": "mongodb+srv://rom:rom@cluster0-mbq3n.mongodb.net/movie-shop?retryWrites=true",
     "STARTPORT": 3000,
     "ADMIN_USER": "admin@movie-shop.com",
     "AUDIENCE": "https://movie-shop-backend",
