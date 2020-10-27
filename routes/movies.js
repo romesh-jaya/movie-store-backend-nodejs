@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const checkAdmin = require("../middleware/check-admin");
+const checkAdmin = require('../middleware/check-admin');
 const Movie = require('../models/movie');
+const MovieAnalysis = require('../models/movieAnalysis');
 
 router.get('', (req, res) => {
   const searchTitle = req.query.searchTitle;
@@ -135,17 +136,73 @@ router.get('', (req, res) => {
     });
 });
 
-router.get('/imdbid/:id', (req, res) => {
-  Movie.findOne({ imdbID: req.params.id })
-    .then((savedMovie) => {
-      res.status(200).json({
-        count: savedMovie.count,
-        id: savedMovie._id,
-        languages: savedMovie.languages,
-      });
+router.get('/imdbid/:id', async (req, res) => {
+  try {
+    const savedMovie = await Movie.findOne({ imdbID: req.params.id }).exec();
+    // Log this search to MovieAnalysis
+    const movieAnal = new MovieAnalysis({
+      searchedOn: new Date(),
+      genre: savedMovie.genre,
+    });
+    movieAnal.save();
+
+    res.status(200).json({
+      count: savedMovie.count,
+      id: savedMovie._id,
+      languages: savedMovie.languages,
+    });
+  } catch {
+    res.status(200).json({ count: 0, languages: [] });
+  }
+});
+
+router.get('/analysis/lib', checkAdmin, (_, res) => {
+  const aggregations = [
+    { $unwind: '$genre' },
+    { $sortByCount: '$genre' },
+    { $limit: 5 },
+    {
+      $addFields: {
+        genre: '$_id',
+      },
+    },
+  ];
+
+  Movie.aggregate(aggregations)
+    .then((movieData) => {
+      res.status(200).json(movieData);
     })
-    .catch(() => {
-      res.status(200).json({ count: 0, languages: [] });
+    .catch((error) => {
+      return res.status(500).json({
+        message: 'Retrieving movie analysis failed : ' + error.message,
+      });
+    });
+});
+
+router.get('/analysis/search', checkAdmin, (_, res) => {
+  // search data for the last 30 days
+  const compareDate = new Date();
+  compareDate.setDate(compareDate.getDate() - 30);
+  const aggregations = [
+    { $match: { searchedOn: { $gt: compareDate } } },
+    { $unwind: '$genre' },
+    { $sortByCount: '$genre' },
+    { $limit: 5 },
+    {
+      $addFields: {
+        genre: '$_id',
+      },
+    },
+  ];
+
+  MovieAnalysis.aggregate(aggregations)
+    .then((movieData) => {
+      res.status(200).json(movieData);
+    })
+    .catch((error) => {
+      return res.status(500).json({
+        message: 'Retrieving movie analysis failed : ' + error.message,
+      });
     });
 });
 
