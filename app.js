@@ -30,7 +30,7 @@ mongoose
     console.log('Connected to database!');
   })
   .catch(() => {
-    console.log('Connection failed, exiting!');
+    console.log('Mongo connection failed, exiting!');
     process.exit(-1);
   });
 
