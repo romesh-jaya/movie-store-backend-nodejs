@@ -5,17 +5,19 @@ const Movie = require('../models/movie');
 const MovieAnalysis = require('../models/movieAnalysis');
 
 router.get('', (req, res) => {
-  const searchTitle = req.query.searchTitle;
-  const searchType = req.query.searchType;
-  const searchYearExact = req.query.searchYearExact;
-  const searchYearFrom = req.query.searchYearFrom;
-  const searchYearTo = req.query.searchYearTo;
-  const searchGenres = req.query.searchGenres;
-  const searchLanguage = req.query.searchLanguage;
-  const pageSize = +req.query.pageSize;
-  const currentPage = +req.query.page;
-  const queryAll = req.query.queryAll;
-
+  const {
+    searchTitle,
+    searchType,
+    searchYearExact,
+    searchYearFrom,
+    searchYearTo,
+    searchGenres,
+    searchLanguage,
+    pageSize,
+    currentPage,
+    queryAll,
+    featured,
+  } = req.query;
   const aggregations = [];
 
   if (
@@ -37,7 +39,8 @@ router.get('', (req, res) => {
       searchTitle ||
       searchType ||
       searchGenres ||
-      searchLanguage
+      searchLanguage ||
+      featured
     )
   ) {
     return res.status(500).json({
@@ -93,6 +96,10 @@ router.get('', (req, res) => {
     aggregations.push({ $match: { year: { $gt: searchYearFrom } } });
   } else if (searchYearTo) {
     aggregations.push({ $match: { year: { $lt: searchYearTo } } });
+  }
+
+  if (featured) {
+    aggregations.push({ $match: { featured: { $eq: true } } });
   }
 
   aggregations.push({ $sort: { title: 1 } });
