@@ -10,10 +10,6 @@ const settingsRoutes = require('./routes/settings');
 
 const app = express();
 
-mongoose.set('useNewUrlParser', true);
-mongoose.set('useFindAndModify', false);
-mongoose.set('useCreateIndex', true);
-mongoose.set('useUnifiedTopology', true);
 // Following prints queries
 mongoose.set('debug', (collectionName, method, query, doc) => {
   const currentTime = new Date();
