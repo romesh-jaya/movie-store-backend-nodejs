@@ -4,6 +4,8 @@ const checkAdmin = require('../middleware/check-admin');
 const Movie = require('../models/movie');
 const MovieAnalysis = require('../models/movieAnalysis');
 
+const getMoviesDetailsOMDB = require('../utils/omdb/index');
+
 router.get('', (req, res) => {
   const {
     searchTitle,
@@ -17,6 +19,7 @@ router.get('', (req, res) => {
     currentPage,
     queryAll,
     featured,
+    fetchDetailsFromOmdb,
   } = req.query;
   const aggregations = [];
 
@@ -123,18 +126,51 @@ router.get('', (req, res) => {
   //Use aggregate as we need facet for obtaining count
   Movie.aggregate(aggregations)
     .then((movieData) => {
-      // rename _id to id
-      const movies = movieData[0].movies.map((doc) => {
-        const newDoc = {
+      // add id attribute
+      const moviesFromDb = movieData[0].movies.map((doc) => {
+        return {
           ...doc,
           id: doc._id,
         };
-        delete newDoc._id;
-        delete newDoc.__v;
-        return newDoc;
       });
-      const newRetVal = { movies, movieCount: movieData[0].movieCount };
-      res.status(200).json({ movies: newRetVal });
+
+      // Fetch additional (latest) data from OMDB if requested to do so
+      // Collate data from DB and OMDB
+      if (fetchDetailsFromOmdb) {
+        const movieIMDBIds = moviesFromDb.map((doc) => doc.imdbID);
+        getMoviesDetailsOMDB(movieIMDBIds)
+          .then((moviesFromOmdb) => {
+            const moviesDataCollated = moviesFromDb.map((doc) => {
+              const foundMovie = moviesFromOmdb.find(
+                (movie) => movie.imdbID === doc.imdbID
+              );
+              return {
+                ...doc,
+                ...foundMovie,
+              };
+            });
+
+            res.status(200).json({
+              movies: {
+                movies: moviesDataCollated,
+                movieCount: movieData[0].movieCount,
+              },
+            });
+          })
+          .catch((error) => {
+            return res.status(500).json({
+              message:
+                'Retrieving movie Data from OMDB failed : ' + error.message,
+            });
+          });
+      } else {
+        res.status(200).json({
+          movies: {
+            movies: moviesFromDb,
+            movieCount: movieData[0].movieCount,
+          },
+        });
+      }
     })
     .catch((error) => {
       return res.status(500).json({
