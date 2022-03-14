@@ -23,14 +23,14 @@ router.get('', (req, res) => {
   } = req.query;
   const aggregations = [];
 
-  if (
-    !queryAll &&
-    (pageSize == null || currentPage == null || pageSize < 1 || currentPage < 0)
-  ) {
+  const currentPageNumber = currentPage ? parseInt(currentPage) : 0;
+  const pageSizeNumber = pageSize ? parseInt(pageSize) : 10;
+
+  if (!queryAll && (pageSizeNumber < 1 || currentPageNumber < 0)) {
     return res.status(500).json({
       message:
         'Retrieving movies failed (search) : ' +
-        'Valid pagesize, page no must be specified.',
+        'Valid pagesize, currentPage must be specified.',
     });
   }
 
@@ -110,7 +110,10 @@ router.get('', (req, res) => {
   // pass in all movie documents if queryAll === true
   const moviesVal = queryAll
     ? [{ $match: { _id: { $exists: true } } }]
-    : [{ $skip: pageSize * currentPage }, { $limit: pageSize }];
+    : [
+        { $skip: pageSizeNumber * currentPageNumber },
+        { $limit: pageSizeNumber },
+      ];
 
   aggregations.push({
     $facet: {
