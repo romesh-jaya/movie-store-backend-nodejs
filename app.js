@@ -7,6 +7,7 @@ const jwks = require('jwks-rsa');
 //Routes
 const moviesRoutes = require('./routes/movies');
 const settingsRoutes = require('./routes/settings');
+const paymentsRoutes = require('./routes/payments');
 
 const app = express();
 
@@ -93,5 +94,6 @@ app.use(function (req, res, next) {
 
 app.use('/movies', moviesRoutes);
 app.use('/settings', settingsRoutes);
+app.use('/payments', paymentsRoutes);
 
 module.exports = app;

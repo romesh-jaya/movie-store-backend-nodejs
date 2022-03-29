@@ -8,7 +8,8 @@
     "express-jwt": "^6.1.1",
     "jwks-rsa": "^2.0.5",
     "mongoose": "^6.2.4",
-    "node-fetch": "^2.6.7"
+    "node-fetch": "^2.6.7",
+    "stripe": "^8.213.0"
   },
   "scripts": {
     "start": "node server.js",
