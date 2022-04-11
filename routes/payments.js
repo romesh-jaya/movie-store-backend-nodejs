@@ -30,7 +30,8 @@ const getOrCreatePaymentCustomer = async (userEmail) => {
 };
 
 router.post('/create-payment-intent', async (req, res) => {
-  const { titlesRented, userEmail } = req.body;
+  const { titlesRented } = req.body;
+  const { userEmail } = req;
   let savedPaymentCustomer = '';
 
   if (
@@ -73,7 +74,8 @@ router.post('/create-payment-intent', async (req, res) => {
 });
 
 router.post('/create-checkout-session', async (req, res) => {
-  const { titlesRented, userEmail2: userEmail } = req.body;
+  const { titlesRented } = req.body;
+  const { userEmail } = req;
   const priceId = process.env.DVD_RENT_PRICE_ID;
   const feURL = process.env.FE_URL;
   let savedPaymentCustomer = '';
@@ -120,7 +122,8 @@ router.post('/create-checkout-session', async (req, res) => {
       metadata: { cartItems: JSON.stringify(titlesRented) },
       customer: savedPaymentCustomer.paymentCustomerIdStripe,
     });
-    res.redirect(303, session.url);
+    // res.redirect(303, session.url);
+    res.json({ url: session.url });
   } catch (error) {
     return res.status(500).json({
       message: 'Create Checkout Session failed : ' + error.message,
