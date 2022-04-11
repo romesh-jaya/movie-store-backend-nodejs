@@ -11,40 +11,27 @@ const calculateOrderAmount = (noOfTitlesRented) => {
   return noOfTitlesRented * 2 * 100;
 };
 
-router.post('/create-payment-customer', async (req, res) => {
-  const { userEmail } = req.body;
-
-  try {
-    const savedPaymentCustomer = await PaymentCustomer.findOne({
-      email: userEmail,
-    }).exec();
-    if (!savedPaymentCustomer) {
-      const customer = await stripe.customers.create({
-        description: userEmail,
-      });
-      const paymentCustomer = new PaymentCustomer({
-        email: userEmail,
-        paymentCustomerIdStripe: customer.id,
-      });
-      await paymentCustomer.save();
-      res.status(200).json('Payment Customer created: ' + customer.id);
-    } else {
-      res
-        .status(200)
-        .json(
-          'Payment Customer already exists: ' +
-            savedPaymentCustomer.paymentCustomerIdStripe
-        );
-    }
-  } catch (error) {
-    return res.status(500).json({
-      message: 'Create Payment Customer failed : ' + error.message,
+const getOrCreatePaymentCustomer = async (userEmail) => {
+  const savedPaymentCustomer = await PaymentCustomer.findOne({
+    email: userEmail,
+  }).exec();
+  if (!savedPaymentCustomer) {
+    const customer = await stripe.customers.create({
+      description: userEmail,
     });
+    const paymentCustomer = new PaymentCustomer({
+      email: userEmail,
+      paymentCustomerIdStripe: customer.id,
+    });
+    await paymentCustomer.save();
+    return customer.id;
   }
-});
+  return savedPaymentCustomer.paymentCustomerIdStripe;
+};
 
 router.post('/create-payment-intent', async (req, res) => {
   const { titlesRented, userEmail } = req.body;
+  let savedPaymentCustomer = '';
 
   if (
     !titlesRented ||
@@ -58,13 +45,11 @@ router.post('/create-payment-intent', async (req, res) => {
     });
   }
 
-  const savedPaymentCustomer = await PaymentCustomer.findOne({
-    email: userEmail,
-  }).exec();
-  if (!savedPaymentCustomer) {
+  try {
+    savedPaymentCustomer = await getOrCreatePaymentCustomer(userEmail);
+  } catch (error) {
     return res.status(500).json({
-      message:
-        "Create Payment Intent failed : PaymentCustomer doesn't exist in the database",
+      message: 'Create Payment Customer failed : ' + error.message,
     });
   }
 
