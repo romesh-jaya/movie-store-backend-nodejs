@@ -64,14 +64,14 @@ var jwtCheck = jwt({
   algorithms: ['RS256'],
 });
 
-app.use(jwtCheck, (err, req, res, next) => {
+app.use(jwtCheck, (err, _, res, __) => {
   console.log('Invalid token provided');
   if (err.name === 'UnauthorizedError') {
     res.status(401).send('Invalid token provided');
   }
 });
 
-app.use(function (req, res, next) {
+app.use(function (req, _, next) {
   // Custom claim is set in the access token via rules.
   // Go to Auth0 dashboard -> Rules to see the following rule:
   /*   

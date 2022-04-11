@@ -72,4 +72,60 @@ router.post('/create-payment-intent', async (req, res) => {
   }
 });
 
+router.post('/create-checkout-session', async (req, res) => {
+  const { titlesRented, userEmail2: userEmail } = req.body;
+  const priceId = process.env.DVD_RENT_PRICE_ID;
+  const feURL = process.env.FE_URL;
+  let savedPaymentCustomer = '';
+
+  if (!priceId || !feURL) {
+    return res.status(500).json({
+      message:
+        'Create Checkout Session failed : ' +
+        'DVD_RENT_PRICE_ID and FE_URL must be defined.',
+    });
+  }
+
+  if (
+    !titlesRented ||
+    !Array.isArray(titlesRented) ||
+    titlesRented.length === 0
+  ) {
+    return res.status(500).json({
+      message:
+        'Create Checkout Session failed : ' +
+        'titlesRented must be a valid array with length greater than zero.',
+    });
+  }
+
+  try {
+    savedPaymentCustomer = await getOrCreatePaymentCustomer(userEmail);
+  } catch (error) {
+    return res.status(500).json({
+      message: 'Create Payment Customer failed : ' + error.message,
+    });
+  }
+
+  try {
+    const session = await stripe.checkout.sessions.create({
+      line_items: [
+        {
+          price: process.env.DVD_RENT_PRICE_ID,
+          quantity: titlesRented.length,
+        },
+      ],
+      mode: 'payment',
+      success_url: `${feURL}?success=true`,
+      cancel_url: `${feURL}?canceled=true`,
+      metadata: { cartItems: JSON.stringify(titlesRented) },
+      customer: savedPaymentCustomer.paymentCustomerIdStripe,
+    });
+    res.redirect(303, session.url);
+  } catch (error) {
+    return res.status(500).json({
+      message: 'Create Checkout Session failed : ' + error.message,
+    });
+  }
+});
+
 module.exports = router;
