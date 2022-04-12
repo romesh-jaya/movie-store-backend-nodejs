@@ -74,13 +74,16 @@ router.post('/create-payment-intent', async (req, res) => {
 });
 
 router.post('/create-checkout-session', async (req, res) => {
-  const { titlesRented } = req.body;
+  const {
+    titlesRented,
+    redirectFromCheckoutURLCancelled,
+    redirectFromCheckoutURLSuccess,
+  } = req.body;
   const { userEmail } = req;
   const priceId = process.env.DVD_RENT_PRICE_ID;
-  const feURL = process.env.FE_URL;
   let savedPaymentCustomer = '';
 
-  if (!priceId || !feURL) {
+  if (!priceId) {
     return res.status(500).json({
       message:
         'Create Checkout Session failed : ' +
@@ -97,6 +100,14 @@ router.post('/create-checkout-session', async (req, res) => {
       message:
         'Create Checkout Session failed : ' +
         'titlesRented must be a valid array with length greater than zero.',
+    });
+  }
+
+  if (!redirectFromCheckoutURLSuccess || !redirectFromCheckoutURLCancelled) {
+    return res.status(500).json({
+      message:
+        'Create Checkout Session failed : ' +
+        'redirectFromCheckoutURLCancelled and redirectFromCheckoutURLSuccess must be defined.',
     });
   }
 
@@ -117,12 +128,11 @@ router.post('/create-checkout-session', async (req, res) => {
         },
       ],
       mode: 'payment',
-      success_url: `${feURL}?success=true`,
-      cancel_url: `${feURL}?canceled=true`,
+      success_url: `${redirectFromCheckoutURLSuccess}?orderId=123`,
+      cancel_url: `${redirectFromCheckoutURLCancelled}`,
       metadata: { cartItems: JSON.stringify(titlesRented) },
       customer: savedPaymentCustomer.paymentCustomerIdStripe,
     });
-    // res.redirect(303, session.url);
     res.json({ url: session.url });
   } catch (error) {
     return res.status(500).json({
