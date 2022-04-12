@@ -1,6 +1,8 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const router = express.Router();
 const PaymentCustomer = require('../models/paymentCustomer');
+const Order = require('../models/order');
 
 const stripe = require('stripe')(process.env.STRIPE_TEST_SECRET_KEY);
 
@@ -29,10 +31,22 @@ const getOrCreatePaymentCustomer = async (userEmail) => {
   return savedPaymentCustomer.paymentCustomerIdStripe;
 };
 
+const createOrder = async (userEmail, cartItems) => {
+  const order = new Order({
+    email: userEmail,
+    cartItems,
+    created: new Date(),
+    status: 'Payment Initiated',
+  });
+  const orderDoc = await order.save();
+  return { orderNo: orderDoc.orderNo, id: orderDoc._id };
+};
+
 router.post('/create-payment-intent', async (req, res) => {
   const { titlesRented } = req.body;
   const { userEmail } = req;
   let savedPaymentCustomer = '';
+  let orderInfo;
 
   if (
     !titlesRented ||
@@ -83,6 +97,7 @@ router.post('/create-checkout-session', async (req, res) => {
   const priceId = process.env.DVD_RENT_PRICE_ID;
   let savedPaymentCustomer = '';
 
+  //  ------------ Validations, start ------------------------
   if (!priceId) {
     return res.status(500).json({
       message:
@@ -110,12 +125,21 @@ router.post('/create-checkout-session', async (req, res) => {
         'redirectFromCheckoutURLCancelled and redirectFromCheckoutURLSuccess must be defined.',
     });
   }
+  //  ------------ Validations, end ------------------------
 
   try {
     savedPaymentCustomer = await getOrCreatePaymentCustomer(userEmail);
   } catch (error) {
     return res.status(500).json({
       message: 'Create Payment Customer failed : ' + error.message,
+    });
+  }
+
+  try {
+    orderInfo = await createOrder(userEmail, titlesRented);
+  } catch (error) {
+    return res.status(500).json({
+      message: 'Create Order failed : ' + error.message,
     });
   }
 
@@ -128,15 +152,44 @@ router.post('/create-checkout-session', async (req, res) => {
         },
       ],
       mode: 'payment',
-      success_url: `${redirectFromCheckoutURLSuccess}?orderId=123`,
+      success_url: `${redirectFromCheckoutURLSuccess}?orderId=${orderInfo.id}`,
       cancel_url: `${redirectFromCheckoutURLCancelled}`,
-      metadata: { cartItems: JSON.stringify(titlesRented) },
+      client_reference_id: orderInfo.orderNo,
       customer: savedPaymentCustomer.paymentCustomerIdStripe,
     });
     res.json({ url: session.url });
   } catch (error) {
     return res.status(500).json({
       message: 'Create Checkout Session failed : ' + error.message,
+    });
+  }
+});
+
+router.post('/complete-payment', async (req, res) => {
+  const { orderId } = req.body;
+
+  if (!orderId || !mongoose.isValidObjectId(orderId)) {
+    return res.status(500).json({
+      message: 'Complete Payment failed : ' + 'valid orderId must be defined.',
+    });
+  }
+
+  try {
+    const order = await Order.findByIdAndUpdate(orderId, {
+      status: 'Payment Confirmed',
+    }).exec();
+    if (!order) {
+      return res.status(500).json({
+        message:
+          'Complete Payment failed : ' + 'orderId not found in database.',
+      });
+    }
+    res.send({
+      orderNo: order.orderNo,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: 'Complete Payment failed : ' + error.message,
     });
   }
 });
