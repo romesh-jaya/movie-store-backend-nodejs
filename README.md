@@ -5,3 +5,5 @@ Runs a node.js server as the backend, interfacing with mongoDB. Verifies JWT tok
 Also fetches latest title data from OMDB.
 
 Uses mongoose-sequence plugin to create auto incrementing fields. 
+
+Includes backend functionality for Stripe payments.
