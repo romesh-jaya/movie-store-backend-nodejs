@@ -87,6 +87,20 @@ router.post('/create-payment-intent', async (req, res) => {
   }
 });
 
+router.get('/title-price', async (_, res) => {
+  try {
+    const price = await stripe.prices.retrieve(process.env.DVD_RENT_PRICE_ID);
+    res.send({
+      price: price.unit_amount / 100, // convert from cents to actual main currency
+      currency: price.currency,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: 'Obtaining price failed : ' + error.message,
+    });
+  }
+});
+
 router.post('/create-checkout-session', async (req, res) => {
   const {
     titlesRented,
