@@ -6,11 +6,8 @@ const Order = require('../models/order');
 
 const stripe = require('stripe')(process.env.STRIPE_TEST_SECRET_KEY);
 
-const calculateOrderAmount = (noOfTitlesRented) => {
-  // Replace this constant with a calculation of the order's amount
-  // Calculate the order total on the server to prevent
-  // people from directly manipulating the amount on the client
-  return noOfTitlesRented * 2 * 100;
+const getTitlePrice = async () => {
+  return await stripe.prices.retrieve(process.env.DVD_RENT_PRICE_ID);
 };
 
 const getOrCreatePaymentCustomer = async (userEmail) => {
@@ -69,16 +66,26 @@ router.post('/create-payment-intent', async (req, res) => {
   }
 
   try {
+    orderInfo = await createOrder(userEmail, titlesRented);
+  } catch (error) {
+    return res.status(500).json({
+      message: 'Create Order failed : ' + error.message,
+    });
+  }
+
+  try {
+    const titlePrice = await getTitlePrice();
     // Create a PaymentIntent with the order amount and currency
     const paymentIntent = await stripe.paymentIntents.create({
       customer: savedPaymentCustomer.paymentCustomerIdStripe,
-      amount: calculateOrderAmount(titlesRented.length),
-      currency: 'usd',
+      amount: titlePrice.unit_amount * titlesRented.length,
+      currency: titlePrice.currency,
       payment_method_types: ['card'],
       setup_future_usage: 'on_session',
     });
     res.send({
       clientSecret: paymentIntent.client_secret,
+      orderId: orderInfo.id,
     });
   } catch (error) {
     return res.status(500).json({
@@ -89,7 +96,7 @@ router.post('/create-payment-intent', async (req, res) => {
 
 router.get('/title-price', async (_, res) => {
   try {
-    const price = await stripe.prices.retrieve(process.env.DVD_RENT_PRICE_ID);
+    const price = await getTitlePrice();
     res.send({
       price: price.unit_amount / 100, // convert from cents to actual main currency
       currency: price.currency,
@@ -110,6 +117,7 @@ router.post('/create-checkout-session', async (req, res) => {
   const { userEmail } = req;
   const priceId = process.env.DVD_RENT_PRICE_ID;
   let savedPaymentCustomer = '';
+  let orderInfo;
 
   //  ------------ Validations, start ------------------------
   if (!priceId) {

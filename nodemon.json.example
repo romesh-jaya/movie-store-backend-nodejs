@@ -1,0 +1,14 @@
+{
+  "env": {
+    "MONGOENDPOINT": "",
+    "STARTPORT": 5000,
+    "ADMIN_USER": "admin@movie-shop.com",
+    "OMDB_API_KEY": "",
+    "OMDB_URL": "https://www.omdbapi.com/",
+    "AUDIENCE": "",
+    "ISSUER": "",
+    "JWKS_URI": "",
+    "STRIPE_TEST_SECRET_KEY": "",
+    "DVD_RENT_PRICE_ID": ""
+  }
+}
