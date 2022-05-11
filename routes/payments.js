@@ -282,8 +282,7 @@ router.post('/create-checkout-session-subscription', async (req, res) => {
 });
 
 router.get('/list-subscriptions', async (req, res) => {
-  // const { userEmail } = req;
-  const { userEmail } = req.query;
+  const { userEmail } = req;
   let savedPaymentCustomer = '';
 
   try {
@@ -297,14 +296,13 @@ router.get('/list-subscriptions', async (req, res) => {
   // get only the first subscription, since we don't expect multiple subscriptions for a single
   // customer to be possible
   try {
-    const subscriptions = await stripe.subscriptions.list(); // note: filtering by customer didn't work as at 2022/05
+    const subscriptions = await stripe.subscriptions.list({
+      customer: savedPaymentCustomer.paymentCustomerIdStripe,
+    });
 
     if (subscriptions && subscriptions.data && subscriptions.data.length > 0) {
-      const subscriptionData = subscriptions.data.find(
-        (item) => item.customer === savedPaymentCustomer.paymentCustomerIdStripe
-      );
+      const subscriptionData = subscriptions.data[0];
       if (
-        subscriptionData &&
         subscriptionData.items &&
         subscriptionData.items.data &&
         subscriptionData.items.data.length > 0
