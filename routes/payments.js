@@ -23,9 +23,9 @@ const getOrCreatePaymentCustomer = async (userEmail) => {
       paymentCustomerIdStripe: customer.id,
     });
     await paymentCustomer.save();
-    return customer.id;
+    return paymentCustomer;
   }
-  return savedPaymentCustomer.paymentCustomerIdStripe;
+  return savedPaymentCustomer;
 };
 
 const createOrder = async (userEmail, cartItems) => {
@@ -212,6 +212,112 @@ router.post('/complete-payment', async (req, res) => {
   } catch (error) {
     return res.status(500).json({
       message: 'Complete Payment failed : ' + error.message,
+    });
+  }
+});
+
+router.post('/create-checkout-session-subscription', async (req, res) => {
+  const {
+    lookup_key,
+    redirectFromCheckoutURLSuccess,
+    redirectFromCheckoutURLCancelled,
+  } = req.body;
+  const { userEmail } = req;
+  let savedPaymentCustomer = '';
+
+  //  ------------ Validations, start ------------------------
+  if (
+    !lookup_key ||
+    !redirectFromCheckoutURLSuccess ||
+    !redirectFromCheckoutURLCancelled
+  ) {
+    return res.status(500).json({
+      message:
+        'Create Checkout Session failed : ' +
+        'lookup_key, redirectFromCheckoutURLSuccess and redirectFromCheckoutURLCancelled must be defined.',
+    });
+  }
+
+  const pricesFromStripe = await stripe.prices.list({
+    lookup_keys: [lookup_key],
+    expand: ['data.product'],
+  });
+
+  if (
+    !pricesFromStripe ||
+    !pricesFromStripe.data ||
+    pricesFromStripe.data.length === 0
+  ) {
+    return res.status(500).json({
+      message:
+        'Create Checkout Session failed : ' +
+        'no matching price found for lookup key provided.',
+    });
+  }
+  //  ------------ Validations, end ------------------------
+
+  try {
+    savedPaymentCustomer = await getOrCreatePaymentCustomer(userEmail);
+  } catch (error) {
+    return res.status(500).json({
+      message: 'Create Payment Customer failed : ' + error.message,
+    });
+  }
+
+  const session = await stripe.checkout.sessions.create({
+    billing_address_collection: 'auto',
+    line_items: [
+      {
+        price: pricesFromStripe.data[0].id,
+        quantity: 1,
+      },
+    ],
+    mode: 'subscription',
+    customer: savedPaymentCustomer.paymentCustomerIdStripe,
+    success_url: `${redirectFromCheckoutURLSuccess}?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${redirectFromCheckoutURLCancelled}`,
+  });
+
+  res.json({ url: session.url });
+});
+
+router.get('/list-subscriptions', async (req, res) => {
+  // const { userEmail } = req;
+  const { userEmail } = req.query;
+  let savedPaymentCustomer = '';
+
+  try {
+    savedPaymentCustomer = await getOrCreatePaymentCustomer(userEmail);
+  } catch (error) {
+    return res.status(500).json({
+      message: 'Create Payment Customer failed : ' + error.message,
+    });
+  }
+
+  // get only the first subscription, since we don't expect multiple subscriptions for a single
+  // customer to be possible
+  try {
+    const subscriptions = await stripe.subscriptions.list(); // note: filtering by customer didn't work as at 2022/05
+
+    if (subscriptions && subscriptions.data && subscriptions.data.length > 0) {
+      const subscriptionData = subscriptions.data.find(
+        (item) => item.customer === savedPaymentCustomer.paymentCustomerIdStripe
+      );
+      if (
+        subscriptionData &&
+        subscriptionData.items &&
+        subscriptionData.items.data &&
+        subscriptionData.items.data.length > 0
+      ) {
+        const priceItem = subscriptionData.items.data[0].price.lookup_key;
+        return res.json({ lookupKey: priceItem });
+      }
+    }
+
+    res.json({ lookupKey: null });
+  } catch (error) {
+    return res.status(500).json({
+      message: 'Listing Subscriptions failed : ' + error.message,
     });
   }
 });
