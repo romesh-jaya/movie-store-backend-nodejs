@@ -307,12 +307,15 @@ router.get('/get-user-subscription', async (req, res) => {
         subscriptionData.items.data &&
         subscriptionData.items.data.length > 0
       ) {
-        const priceItem = subscriptionData.items.data[0].price.lookup_key;
-        return res.json({ lookupKey: priceItem });
+        const lookupKey = subscriptionData.items.data[0].price.lookup_key;
+        const cancelAtDate = subscriptionData.cancel_at
+          ? new Date(subscriptionData.cancel_at)
+          : null;
+        return res.json({ lookupKey, cancelAtDate });
       }
     }
 
-    res.json({ lookupKey: null });
+    res.json({});
   } catch (error) {
     return res.status(500).json({
       message: 'Retrieving User Subscriptions failed : ' + error.message,
