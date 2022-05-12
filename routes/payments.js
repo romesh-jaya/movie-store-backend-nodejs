@@ -281,7 +281,9 @@ router.post('/create-checkout-session-subscription', async (req, res) => {
   res.json({ url: session.url });
 });
 
-router.get('/list-subscriptions', async (req, res) => {
+// get only the first subscription, since we don't expect multiple subscriptions for a single
+// customer to be possible
+router.get('/get-user-subscription', async (req, res) => {
   const { userEmail } = req;
   let savedPaymentCustomer = '';
 
@@ -293,8 +295,6 @@ router.get('/list-subscriptions', async (req, res) => {
     });
   }
 
-  // get only the first subscription, since we don't expect multiple subscriptions for a single
-  // customer to be possible
   try {
     const subscriptions = await stripe.subscriptions.list({
       customer: savedPaymentCustomer.paymentCustomerIdStripe,
@@ -315,7 +315,7 @@ router.get('/list-subscriptions', async (req, res) => {
     res.json({ lookupKey: null });
   } catch (error) {
     return res.status(500).json({
-      message: 'Listing Subscriptions failed : ' + error.message,
+      message: 'Retrieving User Subscriptions failed : ' + error.message,
     });
   }
 });
