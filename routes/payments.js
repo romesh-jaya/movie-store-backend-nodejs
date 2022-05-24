@@ -99,6 +99,22 @@ router.post('/create-payment-intent', async (req, res) => {
   }
 
   try {
+    const subscriptionInfo = await getActiveSubscriptionInfo(
+      savedPaymentCustomer
+    );
+    if (subscriptionInfo.lookupKey) {
+      return res.send({
+        orderId: orderInfo.id,
+        subscriptionActive: true,
+      });
+    }
+  } catch (error) {
+    return res.status(500).json({
+      message: 'Retrieving User Subscriptions failed : ' + error.message,
+    });
+  }
+
+  try {
     const titlePrice = await getTitlePrice();
     // Create a PaymentIntent with the order amount and currency
     const paymentIntent = await stripe.paymentIntents.create({
