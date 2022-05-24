@@ -39,6 +39,31 @@ const createOrder = async (userEmail, cartItems) => {
   return { orderNo: orderDoc.orderNo, id: orderDoc._id };
 };
 
+const getActiveSubscriptionInfo = async (savedPaymentCustomer) => {
+  const subscriptions = await stripe.subscriptions.list({
+    customer: savedPaymentCustomer.paymentCustomerIdStripe,
+  });
+
+  if (subscriptions && subscriptions.data && subscriptions.data.length > 0) {
+    const subscriptionData = subscriptions.data[0];
+    if (
+      subscriptionData.items &&
+      subscriptionData.items.data &&
+      subscriptionData.items.data.length > 0
+    ) {
+      const lookupKey = subscriptionData.items.data[0].price.lookup_key;
+      const cancelAtDate = subscriptionData.cancel_at
+        ? new Date(subscriptionData.cancel_at * 1000)
+        : null;
+      const currentPeriodEnd = subscriptionData.current_period_end
+        ? new Date(subscriptionData.current_period_end * 1000)
+        : null;
+      return { lookupKey, cancelAtDate, currentPeriodEnd };
+    }
+  }
+  return {};
+};
+
 router.post('/create-payment-intent', async (req, res) => {
   const { titlesRented } = req.body;
   const { userEmail } = req;
@@ -94,11 +119,32 @@ router.post('/create-payment-intent', async (req, res) => {
   }
 });
 
-router.get('/title-price', async (_, res) => {
+router.get('/title-price', async (req, res) => {
+  const { userEmail } = req;
+  let savedPaymentCustomer = '';
+  let subscriptionInfo;
+
+  try {
+    savedPaymentCustomer = await getOrCreatePaymentCustomer(userEmail);
+  } catch (error) {
+    return res.status(500).json({
+      message: 'Create Payment Customer failed : ' + error.message,
+    });
+  }
+
+  try {
+    subscriptionInfo = await getActiveSubscriptionInfo(savedPaymentCustomer);
+  } catch (error) {
+    return res.status(500).json({
+      message: 'Retrieving User Subscriptions failed : ' + error.message,
+    });
+  }
+
   try {
     const price = await getTitlePrice();
+
     res.send({
-      price: price.unit_amount / 100, // convert from cents to actual main currency
+      price: subscriptionInfo.lookupKey ? 0 : price.unit_amount / 100, // convert from cents to actual main currency
       currency: price.currency,
     });
   } catch (error) {
@@ -113,6 +159,7 @@ router.post('/create-checkout-session', async (req, res) => {
     titlesRented,
     redirectFromCheckoutURLCancelled,
     redirectFromCheckoutURLSuccess,
+    redirectFromCheckoutURLSuccessNoCheckout,
   } = req.body;
   const { userEmail } = req;
   const priceId = process.env.DVD_RENT_PRICE_ID;
@@ -140,11 +187,15 @@ router.post('/create-checkout-session', async (req, res) => {
     });
   }
 
-  if (!redirectFromCheckoutURLSuccess || !redirectFromCheckoutURLCancelled) {
+  if (
+    !redirectFromCheckoutURLSuccess ||
+    !redirectFromCheckoutURLCancelled ||
+    !redirectFromCheckoutURLSuccessNoCheckout
+  ) {
     return res.status(500).json({
       message:
         'Create Checkout Session failed : ' +
-        'redirectFromCheckoutURLCancelled and redirectFromCheckoutURLSuccess must be defined.',
+        'redirectFromCheckoutURLCancelled, redirectFromCheckoutURLSuccessNoCheckout and redirectFromCheckoutURLSuccess must be defined.',
     });
   }
   //  ------------ Validations, end ------------------------
@@ -166,6 +217,22 @@ router.post('/create-checkout-session', async (req, res) => {
   }
 
   try {
+    const subscriptionInfo = await getActiveSubscriptionInfo(
+      savedPaymentCustomer
+    );
+    if (subscriptionInfo.lookupKey) {
+      // if subscription is active, don't charge the customer
+      return res.json({
+        url: `${redirectFromCheckoutURLSuccessNoCheckout}?orderId=${orderInfo.id}`,
+      });
+    }
+  } catch (error) {
+    return res.status(500).json({
+      message: 'Retrieving User Subscriptions failed : ' + error.message,
+    });
+  }
+
+  try {
     const session = await stripe.checkout.sessions.create({
       line_items: [
         {
@@ -179,7 +246,7 @@ router.post('/create-checkout-session', async (req, res) => {
       client_reference_id: orderInfo.orderNo,
       customer: savedPaymentCustomer.paymentCustomerIdStripe,
     });
-    res.json({ url: session.url });
+    res.json({ stripeURL: session.url });
   } catch (error) {
     return res.status(500).json({
       message: 'Create Checkout Session failed : ' + error.message,
@@ -224,6 +291,7 @@ router.post('/create-checkout-session-subscription', async (req, res) => {
   } = req.body;
   const { userEmail } = req;
   let savedPaymentCustomer = '';
+  let subscriptionInfo = {};
 
   //  ------------ Validations, start ------------------------
   if (
@@ -264,6 +332,20 @@ router.post('/create-checkout-session-subscription', async (req, res) => {
     });
   }
 
+  try {
+    subscriptionInfo = await getActiveSubscriptionInfo(savedPaymentCustomer);
+  } catch (error) {
+    return res.status(500).json({
+      message: 'Retrieving User Subscriptions failed : ' + error.message,
+    });
+  }
+
+  if (subscriptionInfo.lookupKey) {
+    return res.status(500).json({
+      message: 'Active subscription already exists for customer.',
+    });
+  }
+
   const session = await stripe.checkout.sessions.create({
     billing_address_collection: 'auto',
     line_items: [
@@ -296,26 +378,17 @@ router.get('/get-user-subscription', async (req, res) => {
   }
 
   try {
-    const subscriptions = await stripe.subscriptions.list({
-      customer: savedPaymentCustomer.paymentCustomerIdStripe,
-    });
-
-    if (subscriptions && subscriptions.data && subscriptions.data.length > 0) {
-      const subscriptionData = subscriptions.data[0];
-      if (
-        subscriptionData.items &&
-        subscriptionData.items.data &&
-        subscriptionData.items.data.length > 0
-      ) {
-        const lookupKey = subscriptionData.items.data[0].price.lookup_key;
-        const cancelAtDate = subscriptionData.cancel_at
-          ? new Date(subscriptionData.cancel_at)
-          : null;
-        return res.json({ lookupKey, cancelAtDate });
-      }
+    const subscriptionInfo = await getActiveSubscriptionInfo(
+      savedPaymentCustomer
+    );
+    if (subscriptionInfo.lookupKey) {
+      return res.json({
+        lookupKey: subscriptionInfo.lookupKey,
+        cancelAtDate: subscriptionInfo.cancelAtDate,
+        currentPeriodEnd: subscriptionInfo.currentPeriodEnd,
+      });
     }
-
-    res.json({});
+    return res.json({});
   } catch (error) {
     return res.status(500).json({
       message: 'Retrieving User Subscriptions failed : ' + error.message,
