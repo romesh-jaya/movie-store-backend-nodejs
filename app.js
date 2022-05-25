@@ -3,11 +3,7 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const jwt = require('express-jwt');
 const jwks = require('jwks-rsa');
-
-//Routes
-const moviesRoutes = require('./routes/movies');
-const settingsRoutes = require('./routes/settings');
-const paymentsRoutes = require('./routes/payments');
+const routes = require('./routes');
 
 const app = express();
 
@@ -92,8 +88,6 @@ app.use(function (req, _, next) {
   next();
 });
 
-app.use('/movies', moviesRoutes);
-app.use('/settings', settingsRoutes);
-app.use('/payments', paymentsRoutes);
+app.use('/', routes);
 
 module.exports = app;
