@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const router = express.Router();
 const PaymentCustomer = require('../models/paymentCustomer');
 const Order = require('../models/order');
+const constants = require('../constants');
 
 const stripe = require('stripe')(process.env.STRIPE_TEST_SECRET_KEY);
 
@@ -135,7 +136,7 @@ router.post('/create-payment-intent', async (req, res) => {
   }
 });
 
-router.get('/title-price', async (req, res) => {
+router.get('/prices', async (req, res) => {
   const { userEmail } = req;
   let savedPaymentCustomer = '';
   let subscriptionInfo;
@@ -157,12 +158,23 @@ router.get('/title-price', async (req, res) => {
   }
 
   try {
-    const price = await getTitlePrice();
-
-    res.send({
-      price: subscriptionInfo.lookupKey ? 0 : price.unit_amount / 100, // convert from cents to actual main currency
-      currency: price.currency,
+    const prices = await stripe.prices.list({ active: true });
+    const priceInfo = prices.data.map((price) => {
+      let lookupKey = '';
+      // Note: only subscription prices can be created with a lookup key.
+      // Product prices can be referenced via id
+      if (price.id === process.env.DVD_RENT_PRICE_ID) {
+        lookupKey = constants.titlePriceId;
+      } else {
+        lookupKey = price.lookup_key;
+      }
+      return {
+        lookupKey,
+        price: subscriptionInfo.lookupKey ? 0 : price.unit_amount / 100, // convert from cents to actual main currency
+        currency: price.currency,
+      };
     });
+    res.send({ priceInfo });
   } catch (error) {
     return res.status(500).json({
       message: 'Obtaining price failed : ' + error.message,
