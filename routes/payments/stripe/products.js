@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const router = express.Router();
+const stripe = require('stripe')(process.env.STRIPE_TEST_SECRET_KEY);
 const Order = require('../../../models/order');
 const stripeCommon = require('./common');
 
