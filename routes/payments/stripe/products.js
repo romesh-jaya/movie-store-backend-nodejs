@@ -33,7 +33,7 @@ router.post('/create-payment-intent', async (req, res) => {
   }
 
   try {
-    orderInfo = await createOrder(userEmail, titlesRented);
+    orderInfo = await stripeCommon.createOrder(userEmail, titlesRented);
   } catch (error) {
     return res.status(500).json({
       message: 'Create Order failed : ' + error.message,
@@ -134,7 +134,7 @@ router.post('/create-checkout-session', async (req, res) => {
   }
 
   try {
-    orderInfo = await createOrder(userEmail, titlesRented);
+    orderInfo = await stripeCommon.createOrder(userEmail, titlesRented);
   } catch (error) {
     return res.status(500).json({
       message: 'Create Order failed : ' + error.message,
