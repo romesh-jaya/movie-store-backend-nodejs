@@ -3,21 +3,32 @@ const router = express.Router();
 const checkAdmin = require('../middleware/check-admin');
 const Setting = require('../models/setting');
 
-router.get('/:name', (req, res) => {
-  const name = req.params.name;
-  Setting.findOne({ name })
-    .then((setting) => {
-      res.status(200).json({ value: setting.value });
-    })
-    .catch((error) => {
-      if (name === 'languages') {
-        // default to English if none specified
-        res.status(200).json({ value: ['English'] });
-      }
-      res.status(500).json({
-        message: 'Fetching setting failed: ' + error.message,
-      });
+const settingKeys = ['apiKey', 'languages'];
+
+router.get('/', async (_, res) => {
+  let settings;
+  try {
+    settings = await Setting.find({});
+  } catch {
+    return res.status(500).json({
+      message: 'Fetching settings failed: ' + error.message,
     });
+  }
+  const retVal = [];
+  settingKeys.forEach((key) => {
+    const retrievedSetting = settings.find((setting) => setting.name === key);
+    if (retrievedSetting) {
+      retVal.push({
+        name: retrievedSetting.name,
+        value: retrievedSetting.value,
+      });
+    } else if (key === 'languages') {
+      // default to English if none specified
+      retVal.push({ name: key, value: 'English' });
+    }
+  });
+
+  res.status(200).json(retVal);
 });
 
 router.patch('', checkAdmin, (req, res) => {
