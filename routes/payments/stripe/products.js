@@ -4,9 +4,9 @@ const router = express.Router();
 const stripe = require('stripe')(process.env.STRIPE_TEST_SECRET_KEY);
 const Order = require('../../../models/order');
 const stripeCommon = require('./common');
-const emailJS = require('../../../utils/emailjs');
+const nodemailer = require('../../../utils/nodemailer');
 
-const emailBodyTemplate = `Hi User,
+const emailBodyTemplate = `Dear Customer,
 
 Thank you for your order for renting the following DVD's. They will be reserved and available at our store for pickup over the next 2 weeks. 
 {cartItems}
@@ -226,7 +226,7 @@ router.post('/complete-payment', async (req, res) => {
       '{cartItems}',
       `<ul>${order.cartItems.map((item) => `<li>${item}</li>`)}</ul>`
     );
-    await emailJS.sendEmail(order.email, emailBody, subject);
+    await nodemailer.sendEmail(order.email, emailBody, subject);
   } catch (error) {
     return res.status(500).json({
       message: 'Send Email failed : ' + error.message,
