@@ -4,6 +4,17 @@ const router = express.Router();
 const stripe = require('stripe')(process.env.STRIPE_TEST_SECRET_KEY);
 const Order = require('../../../models/order');
 const stripeCommon = require('./common');
+const emailJS = require('../../../utils/emailjs');
+
+const emailBodyTemplate = `Hi User,
+
+Thank you for your order for renting the following DVD's. They will be reserved and available at our store for pickup over the next 2 weeks. 
+{cartItems}
+
+Please feel free to contact our helpdesk on 222-333-444 for any queries. 
+
+Thank you, 
+Team Ultra.`;
 
 router.post('/create-payment-intent', async (req, res) => {
   const { titlesRented } = req.body;
@@ -182,6 +193,8 @@ router.post('/create-checkout-session', async (req, res) => {
 
 router.post('/complete-payment', async (req, res) => {
   const { orderId } = req.body;
+  let order;
+  let orderNo;
 
   if (!orderId || !mongoose.isValidObjectId(orderId)) {
     return res.status(500).json({
@@ -190,7 +203,7 @@ router.post('/complete-payment', async (req, res) => {
   }
 
   try {
-    const order = await Order.findByIdAndUpdate(orderId, {
+    order = await Order.findByIdAndUpdate(orderId, {
       status: 'Payment Confirmed',
     }).exec();
     if (!order) {
@@ -199,14 +212,30 @@ router.post('/complete-payment', async (req, res) => {
           'Complete Payment failed : ' + 'orderId not found in database.',
       });
     }
-    res.send({
-      orderNo: order.orderNo,
-    });
+
+    orderNo = order.orderNo;
   } catch (error) {
     return res.status(500).json({
       message: 'Complete Payment failed : ' + error.message,
     });
   }
+
+  try {
+    const subject = `Ultra Movie Shop - Order #${orderNo} placed successfully`;
+    const emailBody = emailBodyTemplate.replace(
+      '{cartItems}',
+      `<ul>${order.cartItems.map((item) => `<li>${item}</li>`)}</ul>`
+    );
+    await emailJS.sendEmail(order.email, emailBody, subject);
+  } catch (error) {
+    return res.status(500).json({
+      message: 'Send Email failed : ' + error.message,
+    });
+  }
+
+  res.send({
+    orderNo,
+  });
 });
 
 module.exports = router;
