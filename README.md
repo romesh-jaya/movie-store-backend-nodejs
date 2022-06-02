@@ -1,12 +1,18 @@
 # Backend for Movie Store - NodeJS
 
-Runs a node.js server as the backend, interfacing with mongoDB. Verifies JWT tokens passed in with the requests and also authorizes certain actions which require higher privileges.
+Runs a node.js server as the backend, interfacing with mongoDB. 
 
-Also fetches latest title data from OMDB.
+## Technical details
 
-Uses mongoose-sequence plugin to create auto incrementing fields. 
+- Verifies JWT tokens passed in with the requests and also authorizes certain actions which require higher privileges.
 
-Includes backend functionality for Stripe payments.
+- Fetches latest title data from OMDB.
+
+- Uses mongoose-sequence plugin to create auto incrementing fields. 
+
+- Includes backend functionality for Stripe payments.
+
+- Uses Nodemailer to send emails
 
 All fields mentioned in nodemon.json.example must be filled with correct values and renamed as nodemon.json. 
 
