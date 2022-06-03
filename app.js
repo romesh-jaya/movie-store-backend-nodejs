@@ -1,7 +1,7 @@
 const express = require('express');
-const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const clientRoutes = require('./routes/client');
+const serverRoutes = require('./routes/server');
 
 const app = express();
 
@@ -25,9 +25,6 @@ mongoose
     process.exit(-1);
   });
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
-
 app.use((_, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader(
@@ -47,5 +44,6 @@ app.get('/', function (_, res) {
 });
 
 app.use('/api/client', clientRoutes);
+app.use('/api/server', serverRoutes);
 
 module.exports = app;

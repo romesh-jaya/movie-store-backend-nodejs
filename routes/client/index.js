@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const jwt = require('express-jwt');
 const jwks = require('jwks-rsa');
+const bodyParser = require('body-parser');
 
 const moviesRoutes = require('./movies');
 const settingsRoutes = require('./settings');
@@ -10,7 +11,10 @@ const paymentsRoutesProducts = require('./payments/stripe/products');
 const paymentsRoutesSubscriptions = require('./payments/stripe/subscriptions');
 const paymentsRoutesPortal = require('./payments/stripe/portal');
 
-var jwtCheck = jwt({
+router.use(bodyParser.json());
+router.use(bodyParser.urlencoded({ extended: false }));
+
+const jwtCheck = jwt({
   secret: jwks.expressJwtSecret({
     cache: true,
     rateLimit: true,
