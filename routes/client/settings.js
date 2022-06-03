@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const checkAdmin = require('../middleware/check-admin');
-const Setting = require('../models/setting');
+const checkAdmin = require('../../middleware/check-admin');
+const Setting = require('../../models/setting');
 
 const settingKeys = ['apiKey', 'languages'];
 

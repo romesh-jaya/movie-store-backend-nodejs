@@ -1,10 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const checkAdmin = require('../middleware/check-admin');
-const Movie = require('../models/movie');
-const MovieAnalysis = require('../models/movieAnalysis');
-
-const getMoviesDetailsOMDB = require('../utils/omdb/index');
+const checkAdmin = require('../../middleware/check-admin');
+const Movie = require('../../models/movie');
+const MovieAnalysis = require('../../models/movieAnalysis');
+const getMoviesDetailsOMDB = require('../../utils/omdb/index');
 
 router.get('', (req, res) => {
   const {

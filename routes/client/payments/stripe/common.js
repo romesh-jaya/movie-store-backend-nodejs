@@ -1,5 +1,5 @@
-const PaymentCustomer = require('../../../models/paymentCustomer');
-const Order = require('../../../models/order');
+const PaymentCustomer = require('../../../../models/paymentCustomer');
+const Order = require('../../../../models/order');
 const stripe = require('stripe')(process.env.STRIPE_TEST_SECRET_KEY);
 
 const getTitlePrice = async () => {

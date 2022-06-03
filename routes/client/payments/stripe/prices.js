@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const constants = require('../../../constants');
+const constants = require('../../../../constants');
 const stripeCommon = require('./common');
 const stripe = require('stripe')(process.env.STRIPE_TEST_SECRET_KEY);
 
