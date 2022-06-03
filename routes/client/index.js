@@ -6,6 +6,7 @@ const bodyParser = require('body-parser');
 
 const moviesRoutes = require('./movies');
 const settingsRoutes = require('./settings');
+const ordersRoutes = require('./orders');
 const paymentsRoutesPrices = require('./payments/stripe/prices');
 const paymentsRoutesProducts = require('./payments/stripe/products');
 const paymentsRoutesSubscriptions = require('./payments/stripe/subscriptions');
@@ -26,12 +27,14 @@ const jwtCheck = jwt({
   algorithms: ['RS256'],
 });
 
+/*
 router.use(jwtCheck, (err, _, res, __) => {
   console.log('Invalid token provided');
   if (err.name === 'UnauthorizedError') {
     res.status(401).send('Invalid token provided');
   }
 });
+*/
 
 router.use((req, _, next) => {
   // Custom claim is set in the access token via rules.
@@ -55,6 +58,7 @@ router.use((req, _, next) => {
 
 router.use('/movies', moviesRoutes);
 router.use('/settings', settingsRoutes);
+router.use('/orders', ordersRoutes);
 router.use('/payments/stripe/prices', paymentsRoutesPrices);
 router.use('/payments/stripe/products', paymentsRoutesProducts);
 router.use('/payments/stripe/subscriptions', paymentsRoutesSubscriptions);
