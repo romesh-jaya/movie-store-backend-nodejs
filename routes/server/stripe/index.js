@@ -14,6 +14,8 @@ router.post(
     const sig = request.headers['stripe-signature'];
     let event;
 
+    console.log('payload', payload);
+
     if (!endpointSecret) {
       const errorParams =
         'Stripe Webhook Error: endpointSecret was found to be empty';
