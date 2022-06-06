@@ -24,15 +24,15 @@ const getOrCreatePaymentCustomer = async (userEmail) => {
   return savedPaymentCustomer;
 };
 
-const createOrder = async (userEmail, cartItems) => {
+const createOrder = async (userEmail, cartItems, paymentDone) => {
   const order = new Order({
     email: userEmail,
     cartItems,
     created: new Date(),
-    status: 'Payment Initiated',
+    status: paymentDone ? 'Payment Confirmed' : 'Payment Initiated',
   });
   const orderDoc = await order.save();
-  return { orderNo: orderDoc.orderNo, id: orderDoc._id };
+  return { ...orderDoc._doc, id: orderDoc._id };
 };
 
 const getActiveSubscriptionInfo = async (savedPaymentCustomer) => {

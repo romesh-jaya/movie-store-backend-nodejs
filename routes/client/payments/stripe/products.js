@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const stripe = require('stripe')(process.env.STRIPE_TEST_SECRET_KEY);
 const stripeCommon = require('./common');
+const orderUtil = require('../../../../utils/order');
 
 router.post('/create-payment-intent', async (req, res) => {
   const { titlesRented } = req.body;
@@ -88,6 +89,7 @@ router.post('/create-checkout-session', async (req, res) => {
   const priceId = process.env.DVD_RENT_PRICE_ID;
   let savedPaymentCustomer = '';
   let orderInfo;
+  let subscriptionInfo;
 
   //  ------------ Validations, start ------------------------
   if (!priceId) {
@@ -134,26 +136,38 @@ router.post('/create-checkout-session', async (req, res) => {
   }
 
   try {
-    orderInfo = await stripeCommon.createOrder(userEmail, titlesRented);
+    subscriptionInfo = await stripeCommon.getActiveSubscriptionInfo(
+      savedPaymentCustomer
+    );
+  } catch (error) {
+    return res.status(500).json({
+      message: 'Retrieving User Subscriptions failed : ' + error.message,
+    });
+  }
+
+  try {
+    orderInfo = await stripeCommon.createOrder(
+      userEmail,
+      titlesRented,
+      !!subscriptionInfo.lookupKey
+    );
   } catch (error) {
     return res.status(500).json({
       message: 'Create Order failed : ' + error.message,
     });
   }
 
-  try {
-    const subscriptionInfo = await stripeCommon.getActiveSubscriptionInfo(
-      savedPaymentCustomer
-    );
-    if (subscriptionInfo.lookupKey) {
-      // if subscription is active, don't charge the customer
-      return res.json({
-        url: `${redirectFromCheckoutURLSuccessNoCheckout}?orderId=${orderInfo.id}`,
-      });
+  if (subscriptionInfo.lookupKey) {
+    try {
+      await orderUtil.sendEmail(orderInfo);
+    } catch (err) {
+      // TODO: implement Sentry for this case.
+      // Allow the API call to succeed. Don't block the flow for the email error
+      console.error('Send email error: ', err.message);
     }
-  } catch (error) {
-    return res.status(500).json({
-      message: 'Retrieving User Subscriptions failed : ' + error.message,
+    // if subscription is active, don't charge the customer
+    return res.json({
+      url: `${redirectFromCheckoutURLSuccessNoCheckout}?orderId=${orderInfo.id}`,
     });
   }
 

@@ -40,7 +40,7 @@ router.post(
       if (event.type === 'checkout.session.completed') {
         if (!session || !session.client_reference_id) {
           const errorParams =
-            'Stripe Webhook Error: Session or client_reference_id was found to be empty';
+            'Stripe Webhook Error: Session or client_reference_id was found to be empty. This error can be ignored if prebuilt checkout session was used to apply for subscription.';
           console.error(errorParams);
           return response.status(400).send(errorParams);
         }
@@ -49,11 +49,11 @@ router.post(
       } else if (event.type === 'payment_intent.succeeded') {
         // if react-stripe library was used
 
-        if (!session || !session.description) {
+        if (!session || !session.description || isNaN(session.description)) {
           // Note: even the prebuilt checkout session will fire this event, but with null for description
           // In this case, the following error will be fired, but it is not a problem.
           const errorParams =
-            'Stripe Webhook Error: Session or description was found to be empty';
+            'Stripe Webhook Error: Session or description was found to be empty or invalid. This error can be ignored if prebuilt checkout session was used';
           console.error(errorParams);
           return response.status(400).send(errorParams);
         }
