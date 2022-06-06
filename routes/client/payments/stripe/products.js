@@ -1,10 +1,7 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const router = express.Router();
 const stripe = require('stripe')(process.env.STRIPE_TEST_SECRET_KEY);
-const Order = require('../../../../models/order');
 const stripeCommon = require('./common');
-const nodemailer = require('../../../../utils/nodemailer');
 
 router.post('/create-payment-intent', async (req, res) => {
   const { titlesRented } = req.body;
@@ -67,6 +64,7 @@ router.post('/create-payment-intent', async (req, res) => {
       currency: titlePrice.currency,
       payment_method_types: ['card'],
       setup_future_usage: 'on_session',
+      description: orderInfo.orderNo, // This field is used later on in the Order Completion step
     });
     res.send({
       clientSecret: paymentIntent.client_secret,
@@ -170,7 +168,7 @@ router.post('/create-checkout-session', async (req, res) => {
       mode: 'payment',
       success_url: `${redirectFromCheckoutURLSuccess}?orderId=${orderInfo.id}`,
       cancel_url: `${redirectFromCheckoutURLCancelled}`,
-      client_reference_id: orderInfo.id,
+      client_reference_id: orderInfo.orderNo, // This field is used later on in the Order Completion step
       customer: savedPaymentCustomer.paymentCustomerIdStripe,
     });
     res.json({ stripeURL: session.url });
