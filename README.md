@@ -23,7 +23,9 @@ git push heroku master
 
 ## Stripe related info
 
-Make sure to add the webhook endpoint to the stripe dashboard, as per the instructions in https://stripe.com/docs/webhooks/go-live. E.g. endpoint can be of the format: https://movie-shop-backend-nodejs.herokuapp.com/api/server/stripe/webhook
+Make sure to add the following required info:
+1. Webhook Endpoint’s secret from your Dashboard’s Webhooks settings to the env variable STRIPE_ENDPOINT_SECRET. https://stripe.com/docs/webhooks/signatures. Note that this is different for localhost and deployed webhooks. 
+2. Webhook endpoint to the stripe dashboard, as per the instructions in https://stripe.com/docs/webhooks/go-live. E.g. endpoint can be of the format: https://movie-shop-backend-nodejs.herokuapp.com/api/server/stripe/webhook
 
 ## Available Scripts
 

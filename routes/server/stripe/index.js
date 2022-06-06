@@ -9,25 +9,23 @@ const orderUtil = require('../../../utils/order');
 router.post(
   '/webhook',
   bodyParser.raw({ type: 'application/json' }),
-  async (request, response) => {
-    const payload = request.body;
-    const sig = request.headers['stripe-signature'];
+  async (req, res) => {
+    const payload = req.body;
+    const sig = req.headers['stripe-signature'];
     let event;
-
-    console.log('payload', payload);
 
     if (!sig) {
       const errorParams =
         'Stripe Webhook Error: stripe-signature was found to be empty';
       console.error(errorParams);
-      return response.status(400).send(errorParams);
+      return res.status(400).send(errorParams);
     }
 
     if (!endpointSecret) {
       const errorParams =
         'Stripe Webhook Error: endpointSecret was found to be empty';
       console.error(errorParams);
-      return response.status(400).send(errorParams);
+      return res.status(400).send(errorParams);
     }
 
     try {
@@ -35,7 +33,7 @@ router.post(
     } catch (err) {
       const errorConstructEvent = 'Stripe Webhook Error in constructEvent: ';
       console.error(errorConstructEvent, err.message);
-      return response.status(400).send(`${errorConstructEvent} ${err.message}`);
+      return res.status(400).send(`${errorConstructEvent} ${err.message}`);
     }
 
     if (
@@ -51,7 +49,7 @@ router.post(
           const errorParams =
             'Stripe Webhook Error: Session or client_reference_id was found to be empty. This error can be ignored if prebuilt checkout session was used to apply for subscription.';
           console.error(errorParams);
-          return response.status(400).send(errorParams);
+          return res.status(400).send(errorParams);
         }
 
         orderNo = session.client_reference_id;
@@ -64,7 +62,7 @@ router.post(
           const errorParams =
             'Stripe Webhook Error: Session or description was found to be empty or invalid. This error can be ignored if prebuilt checkout session was used';
           console.error(errorParams);
-          return response.status(400).send(errorParams);
+          return res.status(400).send(errorParams);
         }
         orderNo = session.description;
       }
@@ -73,11 +71,11 @@ router.post(
       } catch (err) {
         const errorEmail = 'Stripe Webhook Send email error: ';
         console.error(errorEmail, err.message);
-        return response.status(400).send(`${errorEmail} ${err.message}`);
+        return res.status(400).send(`${errorEmail} ${err.message}`);
       }
     }
 
-    response.status(200);
+    res.status(200).send();
   }
 );
 
