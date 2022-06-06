@@ -16,6 +16,13 @@ router.post(
 
     console.log('payload', payload);
 
+    if (!sig) {
+      const errorParams =
+        'Stripe Webhook Error: stripe-signature was found to be empty';
+      console.error(errorParams);
+      return response.status(400).send(errorParams);
+    }
+
     if (!endpointSecret) {
       const errorParams =
         'Stripe Webhook Error: endpointSecret was found to be empty';
