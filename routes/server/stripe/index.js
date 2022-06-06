@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const bodyParser = require('body-parser');
 const stripe = require('stripe')(process.env.STRIPE_TEST_SECRET_KEY);
-// Find your endpoint's secret in your Dashboard's webhook settings
+// Find the STRIPE_ENDPOINT_SECRET in your Stripe Dashboard's webhook settings
 const endpointSecret = process.env.STRIPE_ENDPOINT_SECRET;
 const orderUtil = require('../../../utils/order');
 
@@ -15,56 +15,56 @@ router.post(
     let event;
 
     if (!endpointSecret) {
-      console.error('Stripe webhook error endpointSecret is null');
-      return response.status(400).send(`Webhook Error: endpointSecret is null`);
+      const errorParams =
+        'Stripe Webhook Error: endpointSecret was found to be empty';
+      console.error(errorParams);
+      return response.status(400).send(errorParams);
     }
 
     try {
       event = stripe.webhooks.constructEvent(payload, sig, endpointSecret);
     } catch (err) {
-      console.error('Stripe webhook error constructEvent', err.message);
-      return response.status(400).send(`Webhook Error: ${err.message}`);
+      const errorConstructEvent = 'Stripe Webhook Error in constructEvent: ';
+      console.error(errorConstructEvent, err.message);
+      return response.status(400).send(`${errorConstructEvent} ${err.message}`);
     }
 
-    if (event.type === 'checkout.session.completed') {
+    if (
+      event.type === 'checkout.session.completed' ||
+      event.type === 'payment_intent.succeeded'
+    ) {
+      const session = event.data.object;
+      let orderNo;
+
       // if prebuilt checkout session was used
-      const session = event.data.object;
+      if (event.type === 'checkout.session.completed') {
+        if (!session || !session.client_reference_id) {
+          const errorParams =
+            'Stripe Webhook Error: Session or client_reference_id was found to be empty';
+          console.error(errorParams);
+          return response.status(400).send(errorParams);
+        }
 
-      if (!session || !session.client_reference_id) {
-        console.error(
-          'Stripe webhook error',
-          'Session or client_reference_id was found to be empty'
-        );
-        return response
-          .status(400)
-          .send(
-            `Webhook Error: Session or client_reference_id was found to be empty`
-          );
+        orderNo = session.client_reference_id;
+      } else if (event.type === 'payment_intent.succeeded') {
+        // if react-stripe library was used
+
+        if (!session || !session.description) {
+          // Note: even the prebuilt checkout session will fire this event, but with null for description
+          // In this case, the following error will be fired, but it is not a problem.
+          const errorParams =
+            'Stripe Webhook Error: Session or description was found to be empty';
+          console.error(errorParams);
+          return response.status(400).send(errorParams);
+        }
+        orderNo = session.description;
       }
       try {
-        await orderUtil.completeOrderAndSendEmail(session.client_reference_id);
+        await orderUtil.completeOrderAndSendEmail(orderNo);
       } catch (err) {
-        console.error('Send email error', err);
-        return response.status(400).send(`Webhook Error: ${err.message}`);
-      }
-    } else if (event.type === 'payment_intent.succeeded') {
-      // if react-stripe library was used
-      const session = event.data.object;
-
-      if (!session || !session.description) {
-        console.error(
-          'Stripe webhook error',
-          'Session or description was found to be empty'
-        );
-        return response
-          .status(400)
-          .send(`Webhook Error: Session or description was found to be empty`);
-      }
-      try {
-        await orderUtil.completeOrderAndSendEmail(session.description);
-      } catch (err) {
-        console.error('Send email error', err);
-        return response.status(400).send(`Webhook Error: ${err.message}`);
+        const errorEmail = 'Stripe Webhook Send email error: ';
+        console.error(errorEmail, err.message);
+        return response.status(400).send(`${errorEmail} ${err.message}`);
       }
     }
 
