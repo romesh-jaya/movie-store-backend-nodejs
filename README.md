@@ -20,6 +20,11 @@ Note 2022/04:
 Github integration with heroku wasn't working as expected. Use this command to push and build to the heroku git repo:
 git push heroku master
 
+
+## Stripe related info
+
+Make sure to add the webhook endpoint to the stripe dashboard, as per the instructions in https://stripe.com/docs/webhooks/go-live. E.g. endpoint can be of the format: https://movie-shop-backend-nodejs.herokuapp.com/api/server/stripe/webhook
+
 ## Available Scripts
 
 In the project directory, you can run:
