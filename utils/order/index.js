@@ -7,7 +7,9 @@ const sendEmail = async (orderInfo) => {
     const subject = `Ultra Movie Shop - Order #${orderInfo.orderNo} placed successfully`;
     const emailBody = constants.emailBodyTemplate.replace(
       '{cartItems}',
-      `<ul>${orderInfo.cartItems.map((item) => `<li>${item}</li>`)}</ul>`
+      `<ul>${orderInfo.cartItems
+        .map((item) => `<li>${item}</li>`)
+        .join('')}</ul>`
     );
     await nodemailer.sendEmail(orderInfo.email, emailBody, subject);
   } catch (error) {
