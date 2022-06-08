@@ -56,13 +56,8 @@ router.post('/create-payment-intent', async (req, res) => {
   }
 
   if (subscriptionInfo.lookupKey) {
-    try {
-      await orderUtil.sendEmail(orderInfo);
-    } catch (err) {
-      // TODO: implement Sentry for this case.
-      // Allow the API call to succeed. Don't block the flow for the email error
-      console.error('Send email error: ', err.message);
-    }
+    await orderUtil.sendEmailOrderCompletion(orderInfo);
+
     // if subscription is active, don't charge the customer
     return res.send({
       orderId: orderInfo.id,
@@ -172,13 +167,8 @@ router.post('/create-checkout-session', async (req, res) => {
   }
 
   if (subscriptionInfo.lookupKey) {
-    try {
-      await orderUtil.sendEmail(orderInfo);
-    } catch (err) {
-      // TODO: implement Sentry for this case.
-      // Allow the API call to succeed. Don't block the flow for the email error
-      console.error('Send email error: ', err.message);
-    }
+    await orderUtil.sendEmailOrderCompletion(orderInfo);
+
     // if subscription is active, don't charge the customer
     return res.json({
       url: `${redirectFromCheckoutURLSuccessNoCheckout}?orderId=${orderInfo.id}`,

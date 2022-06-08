@@ -49,6 +49,7 @@ All fields mentioned in nodemon.json.example must be filled with correct values 
     - DVD_RENT_PRICE_ID - Stripe Price ID for the rentable DVD product
     - EMAIL_ADDRESS - SMTP email address that is used for sending emails by nodemailer
     - EMAIL_PASSWORD - Password for email account
+    - DB_DOWN_EMAIL_ALERT_ADDRESS - Email address to send alert that DB is down
 
 ## Available Scripts
 

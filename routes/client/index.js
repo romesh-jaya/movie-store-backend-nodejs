@@ -27,6 +27,7 @@ const jwtCheck = jwt({
   algorithms: ['RS256'],
 });
 
+// Note: comment the following codeblock for testing without passing an OAuth token
 router.use(jwtCheck, (err, _, res, __) => {
   console.log('Invalid token provided');
   if (err.name === 'UnauthorizedError') {

@@ -2,7 +2,7 @@ const Order = require('../../models/order');
 const nodemailer = require('../../utils/nodemailer');
 const constants = require('../../constants');
 
-const sendEmail = async (orderInfo) => {
+const sendEmailOrderCompletion = async (orderInfo) => {
   try {
     const subject = `Ultra Movie Shop - Order #${orderInfo.orderNo} placed successfully`;
     const emailBody = constants.emailBodyTemplate.replace(
@@ -13,7 +13,9 @@ const sendEmail = async (orderInfo) => {
     );
     await nodemailer.sendEmail(orderInfo.email, emailBody, subject);
   } catch (error) {
-    throw new Error('Send Email failed : ' + error.message);
+    // TODO: implement Sentry for this case.
+    // Allow the API call to succeed. Don't block the flow for the email error
+    console.error('Send email error: ', err.message);
   }
 };
 
@@ -42,10 +44,10 @@ const completeOrderAndSendEmail = async (orderNo) => {
     throw new Error('Complete Payment failed : ' + error.message);
   }
 
-  await sendEmail(order);
+  await sendEmailOrderCompletion(order);
 };
 
 module.exports = {
   completeOrderAndSendEmail,
-  sendEmail,
+  sendEmailOrderCompletion,
 };

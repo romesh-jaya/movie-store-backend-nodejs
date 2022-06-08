@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const clientRoutes = require('./routes/client');
 const serverRoutes = require('./routes/server');
+const MongoDBUtil = require('./utils/mongodb');
 
 const app = express();
 
@@ -21,8 +22,10 @@ mongoose
     console.log('Connected to database!');
   })
   .catch(() => {
-    console.log('Mongo connection failed, exiting!');
-    process.exit(-1);
+    MongoDBUtil.sendEmailDBDown().then(() => {
+      console.log('Mongo connection failed, exiting!');
+      process.exit(-1);
+    });
   });
 
 app.use((_, res, next) => {

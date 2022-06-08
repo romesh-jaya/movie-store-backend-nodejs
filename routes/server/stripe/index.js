@@ -2,13 +2,12 @@ const express = require('express');
 const router = express.Router();
 const bodyParser = require('body-parser');
 const stripe = require('stripe')(process.env.STRIPE_TEST_SECRET_KEY);
-// Find the STRIPE_ENDPOINT_SECRET in your Stripe Dashboard's webhook settings
 const endpointSecret = process.env.STRIPE_ENDPOINT_SECRET;
 const orderUtil = require('../../../utils/order');
 
 router.post(
   '/webhook',
-  bodyParser.raw({ type: 'application/json' }),
+  bodyParser.raw({ type: 'application/json' }), // Important: do not have any calls to bodyParser.json() before this
   async (req, res) => {
     const payload = req.body;
     const sig = req.headers['stripe-signature'];
@@ -69,7 +68,7 @@ router.post(
       try {
         await orderUtil.completeOrderAndSendEmail(orderNo);
       } catch (err) {
-        const errorEmail = 'Stripe Webhook Send email error: ';
+        const errorEmail = 'Stripe Webhook Order Completion error: ';
         console.error(errorEmail, err.message);
         return res.status(400).send(`${errorEmail} ${err.message}`);
       }
