@@ -8,6 +8,7 @@ const verifyURL = process.env.PAYPAL_VERIFY_URL;
 const clientID = process.env.PAYPAL_CLIENT_ID;
 const clientSecret = process.env.PAYPAL_CLIENT_SECRET;
 const authURL = process.env.PAYPAL_AUTH_URL;
+const orderInfoURL = process.env.PAYPAL_GET_ORDER_INFO_URL;
 
 // Access token is used to authenticate all REST API requests
 // Taken from https://developer.paypal.com/docs/checkout/advanced/integrate/#link-generateclienttoken
@@ -34,6 +35,8 @@ router.post('/webhook', bodyParser.json(), async (req, res) => {
   const authAlgo = req.headers['paypal-auth-algo'];
   const transmissionSig = req.headers['paypal-transmission-sig'];
   let accessToken;
+  let paypalOrderID;
+  let orderNo;
 
   const body = {
     webhook_id: webhookID,
@@ -45,11 +48,32 @@ router.post('/webhook', bodyParser.json(), async (req, res) => {
     webhook_event: payload,
   };
 
-  if (!webhookID || !verifyURL || !clientID || !clientSecret || !authURL) {
+  if (
+    !webhookID ||
+    !verifyURL ||
+    !clientID ||
+    !clientSecret ||
+    !authURL ||
+    !orderInfoURL
+  ) {
     const errorParams =
-      'Paypal Webhook Error: webhookID, clientID, clientSecret, authURL or verifyURL was found to be empty';
+      'Paypal Webhook Error: webhookID, clientID, clientSecret, authURL, orderInfoURL or verifyURL was found to be empty';
     console.error(errorParams);
     return res.status(400).send(errorParams);
+  }
+
+  if (
+    !(
+      payload.resource &&
+      payload.resource.supplementary_data &&
+      payload.resource.supplementary_data.related_ids &&
+      payload.resource.supplementary_data.related_ids.order_id
+    )
+  ) {
+    const errorConstructEvent =
+      'Paypal Webhook Error, order ID not found in payload';
+    console.error(errorConstructEvent);
+    return res.status(400).send(errorConstructEvent);
   }
 
   try {
@@ -61,6 +85,7 @@ router.post('/webhook', bodyParser.json(), async (req, res) => {
   }
 
   try {
+    // let Paypal verify if this was actually sent by them
     let response = await fetch(verifyURL, {
       method: 'POST',
       body: JSON.stringify(body),
@@ -76,6 +101,36 @@ router.post('/webhook', bodyParser.json(), async (req, res) => {
       console.error(errorConstructEvent);
       return res.status(400).send(errorConstructEvent);
     }
+  } catch (err) {
+    const errorConstructEvent = 'Paypal Webhook Error in verify: ';
+    console.error(errorConstructEvent, err.message);
+    return res.status(400).send(`${errorConstructEvent} ${err.message}`);
+  }
+
+  try {
+    paypalOrderID = payload.resource.supplementary_data.related_ids.order_id;
+    // get our order no from PayPal Order Info
+    let response = await fetch(`${orderInfoURL}/${paypalOrderID}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    let responseJson = await response.json();
+    if (
+      !(
+        responseJson.purchase_units &&
+        responseJson.purchase_units.length > 0 &&
+        responseJson.purchase_units[0].reference_id
+      )
+    ) {
+      const errorConstructEvent =
+        'Paypal Webhook Error, reference_id not found in retrieved order info';
+      console.error(errorConstructEvent);
+      return res.status(400).send(errorConstructEvent);
+    }
+    orderNo = responseJson.purchase_units.reference_id;
   } catch (err) {
     const errorConstructEvent = 'Paypal Webhook Error in verify: ';
     console.error(errorConstructEvent, err.message);
