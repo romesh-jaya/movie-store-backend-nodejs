@@ -13,6 +13,11 @@
     "DVD_RENT_PRICE_ID": "",
     "EMAIL_ADDRESS": "",
     "EMAIL_PASSWORD": "",
-    "DB_DOWN_EMAIL_ALERT_ADDRESS": ""    
+    "DB_DOWN_EMAIL_ALERT_ADDRESS": "",
+    "WEBHOOK_ID": "",
+    "PAYPAL_VERIFY_URL": "https://api-m.sandbox.paypal.com/v1/notifications/verify-webhook-signature",
+    "PAYPAL_CLIENT_ID": "",
+    "PAYPAL_CLIENT_SECRET": "",
+    "PAYPAL_AUTH_URL": "https://api-m.sandbox.paypal.com/v1/oauth2/token"        
   }
 }
