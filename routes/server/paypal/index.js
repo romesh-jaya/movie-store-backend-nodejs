@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const fetch = require('node-fetch');
 const bodyParser = require('body-parser');
+const orderUtil = require('../../../utils/order');
 
 const webhookID = process.env.WEBHOOK_ID;
 const verifyURL = process.env.PAYPAL_VERIFY_URL;
@@ -130,11 +131,21 @@ router.post('/webhook', bodyParser.json(), async (req, res) => {
       console.error(errorConstructEvent);
       return res.status(400).send(errorConstructEvent);
     }
-    orderID = responseJson.purchase_units.reference_id;
+    orderID = responseJson.purchase_units[0].reference_id;
   } catch (err) {
     const errorConstructEvent = 'Paypal Webhook Error in verify: ';
     console.error(errorConstructEvent, err.message);
     return res.status(400).send(`${errorConstructEvent} ${err.message}`);
+  }
+
+  if (payload.event_type === 'PAYMENT.CAPTURE.COMPLETED') {
+    try {
+      await orderUtil.completeOrderByIDAndSendEmail(orderID);
+    } catch (err) {
+      const errorEmail = 'Paypal Webhook Order Completion error: ';
+      console.error(errorEmail, err.message);
+      return res.status(400).send(`${errorEmail} ${err.message}`);
+    }
   }
 
   res.status(200).send();

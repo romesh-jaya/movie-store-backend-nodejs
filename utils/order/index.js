@@ -19,6 +19,25 @@ const sendEmailOrderCompletion = async (orderInfo) => {
   }
 };
 
+const completeOrderByIDAndSendEmail = async (orderID) => {
+  let order;
+
+  try {
+    order = await Order.findByIdAndUpdate(orderID, {
+      status: 'Payment Confirmed',
+    }).exec();
+    if (!order) {
+      throw new Error(
+        'Complete Payment failed : ' + 'orderId not found in database.'
+      );
+    }
+  } catch (error) {
+    throw new Error('Complete Payment failed : ' + error.message);
+  }
+
+  await sendEmailOrderCompletion(order);
+};
+
 const completeOrderAndSendEmail = async (orderNo) => {
   let order;
 
@@ -48,6 +67,7 @@ const completeOrderAndSendEmail = async (orderNo) => {
 };
 
 module.exports = {
+  completeOrderByIDAndSendEmail,
   completeOrderAndSendEmail,
   sendEmailOrderCompletion,
 };
