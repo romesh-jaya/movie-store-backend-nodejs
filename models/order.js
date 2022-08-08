@@ -6,6 +6,11 @@ const orderSchema = mongoose.Schema({
   created: { type: Date, required: true },
   cartItems: { type: [String], required: true },
   status: { type: String, required: true },
+  paymentMethod: {
+    type: String,
+    enum: ['PAYPAL', 'STRIPE'],
+    required: true,
+  },
 });
 
 orderSchema.plugin(AutoIncrement, { inc_field: 'orderNo' });

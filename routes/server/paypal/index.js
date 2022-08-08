@@ -36,7 +36,7 @@ router.post('/webhook', bodyParser.json(), async (req, res) => {
   const transmissionSig = req.headers['paypal-transmission-sig'];
   let accessToken;
   let paypalOrderID;
-  let orderNo;
+  let orderID;
 
   const body = {
     webhook_id: webhookID,
@@ -130,7 +130,7 @@ router.post('/webhook', bodyParser.json(), async (req, res) => {
       console.error(errorConstructEvent);
       return res.status(400).send(errorConstructEvent);
     }
-    orderNo = responseJson.purchase_units.reference_id;
+    orderID = responseJson.purchase_units.reference_id;
   } catch (err) {
     const errorConstructEvent = 'Paypal Webhook Error in verify: ';
     console.error(errorConstructEvent, err.message);

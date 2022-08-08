@@ -24,17 +24,6 @@ const getOrCreatePaymentCustomer = async (userEmail) => {
   return savedPaymentCustomer;
 };
 
-const createOrder = async (userEmail, cartItems, paymentDone) => {
-  const order = new Order({
-    email: userEmail,
-    cartItems,
-    created: new Date(),
-    status: paymentDone ? 'Payment Confirmed' : 'Payment Initiated',
-  });
-  const orderDoc = await order.save();
-  return { ...orderDoc._doc, id: orderDoc._id };
-};
-
 const getActiveSubscriptionInfo = async (savedPaymentCustomer) => {
   const subscriptions = await stripe.subscriptions.list({
     customer: savedPaymentCustomer.paymentCustomerIdStripe,
@@ -63,6 +52,5 @@ const getActiveSubscriptionInfo = async (savedPaymentCustomer) => {
 module.exports = {
   getTitlePrice,
   getOrCreatePaymentCustomer,
-  createOrder,
   getActiveSubscriptionInfo,
 };

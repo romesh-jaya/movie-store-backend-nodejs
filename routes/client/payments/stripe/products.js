@@ -2,7 +2,9 @@ const express = require('express');
 const router = express.Router();
 const stripe = require('stripe')(process.env.STRIPE_TEST_SECRET_KEY);
 const stripeCommon = require('./common');
+const paymentsCommon = require('../paymentsCommon');
 const orderUtil = require('../../../../utils/order');
+const paymentMethod = 'STRIPE';
 
 router.post('/create-payment-intent', async (req, res) => {
   const { titlesRented } = req.body;
@@ -44,10 +46,11 @@ router.post('/create-payment-intent', async (req, res) => {
   }
 
   try {
-    orderInfo = await stripeCommon.createOrder(
+    orderInfo = await paymentsCommon.createOrder(
       userEmail,
       titlesRented,
-      !!subscriptionInfo.lookupKey
+      !!subscriptionInfo.lookupKey,
+      paymentMethod
     );
   } catch (error) {
     return res.status(500).json({
@@ -155,10 +158,11 @@ router.post('/create-checkout-session', async (req, res) => {
   }
 
   try {
-    orderInfo = await stripeCommon.createOrder(
+    orderInfo = await paymentsCommon.createOrder(
       userEmail,
       titlesRented,
-      !!subscriptionInfo.lookupKey
+      !!subscriptionInfo.lookupKey,
+      paymentMethod
     );
   } catch (error) {
     return res.status(500).json({

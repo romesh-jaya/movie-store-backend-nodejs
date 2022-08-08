@@ -11,6 +11,7 @@ const paymentsRoutesPrices = require('./payments/stripe/prices');
 const paymentsRoutesProducts = require('./payments/stripe/products');
 const paymentsRoutesSubscriptions = require('./payments/stripe/subscriptions');
 const paymentsRoutesPortal = require('./payments/stripe/portal');
+const paymentsRoutesProductsPaypal = require('./payments/paypal/products');
 
 router.use(bodyParser.json());
 router.use(bodyParser.urlencoded({ extended: false }));
@@ -62,5 +63,6 @@ router.use('/payments/stripe/prices', paymentsRoutesPrices);
 router.use('/payments/stripe/products', paymentsRoutesProducts);
 router.use('/payments/stripe/subscriptions', paymentsRoutesSubscriptions);
 router.use('/payments/stripe/portal', paymentsRoutesPortal);
+router.use('/payments/paypal/products', paymentsRoutesProductsPaypal);
 
 module.exports = router;
