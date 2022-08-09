@@ -4,7 +4,7 @@ const fetch = require('node-fetch');
 const bodyParser = require('body-parser');
 const orderUtil = require('../../../utils/order');
 
-const webhookID = process.env.WEBHOOK_ID;
+const webhookID = process.env.PAYPAL_WEBHOOK_ID;
 const verifyURL = process.env.PAYPAL_VERIFY_URL;
 const clientID = process.env.PAYPAL_CLIENT_ID;
 const clientSecret = process.env.PAYPAL_CLIENT_SECRET;

@@ -14,7 +14,7 @@
     "EMAIL_ADDRESS": "",
     "EMAIL_PASSWORD": "",
     "DB_DOWN_EMAIL_ALERT_ADDRESS": "",
-    "WEBHOOK_ID": "",
+    "PAYPAL_WEBHOOK_ID": "",
     "PAYPAL_VERIFY_URL": "https://api-m.sandbox.paypal.com/v1/notifications/verify-webhook-signature",
     "PAYPAL_CLIENT_ID": "",
     "PAYPAL_CLIENT_SECRET": "",

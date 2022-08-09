@@ -27,6 +27,12 @@ Make sure to add the following required info:
 
 Webhook logs can be viewed at: https://dashboard.stripe.com/test/webhooks/
 
+## PayPal related info
+
+Make sure to add the following required info:
+1. Webhook Endpoint’s secret from your Dashboard’s Webhooks settings to the env variable STRIPE_ENDPOINT_SECRET. https://stripe.com/docs/webhooks/signatures. Note that this is different for localhost and deployed webhooks. 
+2. Webhook endpoint to the stripe dashboard, as per the instructions in https://stripe.com/docs/webhooks/go-live. E.g. endpoint can be of the format: https://movie-shop-backend-nodejs.herokuapp.com/api/server/stripe/webhook
+
 ## API Paths
 
 - /api/client - handles all requests from the client. Each request must have a OAuth Auth Token passed in as Authorization Header
@@ -50,6 +56,13 @@ All fields mentioned in nodemon.json.example must be filled with correct values 
     - EMAIL_ADDRESS - SMTP email address that is used for sending emails by nodemailer
     - EMAIL_PASSWORD - Password for email account
     - DB_DOWN_EMAIL_ALERT_ADDRESS - Email address to send alert that DB is down
+    - PAYPAL_WEBHOOK_ID: Paypal Webhook endpoint's ID,
+    - PAYPAL_VERIFY_URL: URL to verify Paypal signature,
+    - PAYPAL_CLIENT_ID: Paypal Client ID,
+    - PAYPAL_CLIENT_SECRET: Paypal Client Secret,
+    - PAYPAL_AUTH_URL: URL to get Paypal auth token,
+    - PAYPAL_GET_ORDER_INFO_URL: URL to retrieve a particular order's details from Paypal
+    
 
 ## Available Scripts
 
