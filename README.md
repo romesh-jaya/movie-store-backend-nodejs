@@ -5,18 +5,11 @@ Runs a node.js server as the backend, interfacing with mongoDB.
 ## Technical details
 
 - Verifies JWT tokens passed in with the requests and also authorizes certain actions which require higher privileges.
-
 - Fetches latest title data from OMDB.
-
 - Uses mongoose-sequence plugin to create auto incrementing fields. 
-
 - Includes backend functionality for Stripe payments including a webhook.
-
+- Includes backend functionality for Paypal payments including a webhook.
 - Uses Nodemailer to send emails
-
-Note 2022/04: 
-Github integration with heroku wasn't working as expected. Use this command to push and build to the heroku git repo:
-git push heroku master
 
 
 ## Stripe related info
@@ -29,9 +22,7 @@ Webhook logs can be viewed at: https://dashboard.stripe.com/test/webhooks/
 
 ## PayPal related info
 
-Make sure to add the following required info:
-1. Webhook Endpoint’s secret from your Dashboard’s Webhooks settings to the env variable STRIPE_ENDPOINT_SECRET. https://stripe.com/docs/webhooks/signatures. Note that this is different for localhost and deployed webhooks. 
-2. Webhook endpoint to the stripe dashboard, as per the instructions in https://stripe.com/docs/webhooks/go-live. E.g. endpoint can be of the format: https://movie-shop-backend-nodejs.herokuapp.com/api/server/stripe/webhook
+Create a Webhook endpoint in PayPal, as per the instructions in https://developer.paypal.com/docs/api/webhooks/v1/#webhooks_post. The provided url can be of the format: https://movie-shop-backend-nodejs.herokuapp.com/api/server/paypal/webhook
 
 ## API Paths
 
