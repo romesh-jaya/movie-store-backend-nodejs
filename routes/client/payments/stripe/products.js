@@ -98,7 +98,7 @@ router.post('/create-checkout-session', async (req, res) => {
     redirectFromCheckoutURLSuccessNoCheckout,
   } = req.body;
   const { userEmail } = req;
-  const priceId = process.env.DVD_RENT_PRICE_ID;
+  const priceId = process.env.STRIPE_DVD_RENT_PRICE_ID;
   let savedPaymentCustomer = '';
   let orderInfo;
   let subscriptionInfo;
@@ -108,7 +108,7 @@ router.post('/create-checkout-session', async (req, res) => {
     return res.status(500).json({
       message:
         'Create Checkout Session failed : ' +
-        'DVD_RENT_PRICE_ID and FE_URL must be defined.',
+        'STRIPE_DVD_RENT_PRICE_ID and FE_URL must be defined.',
     });
   }
 
@@ -183,7 +183,7 @@ router.post('/create-checkout-session', async (req, res) => {
     const session = await stripe.checkout.sessions.create({
       line_items: [
         {
-          price: process.env.DVD_RENT_PRICE_ID,
+          price: process.env.STRIPE_DVD_RENT_PRICE_ID,
           quantity: titlesRented.length,
         },
       ],

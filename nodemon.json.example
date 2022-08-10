@@ -10,7 +10,7 @@
     "JWKS_URI": "",
     "STRIPE_TEST_SECRET_KEY": "",
     "STRIPE_ENDPOINT_SECRET": "",
-    "DVD_RENT_PRICE_ID": "",
+    "STRIPE_DVD_RENT_PRICE_ID": "",
     "EMAIL_ADDRESS": "",
     "EMAIL_PASSWORD": "",
     "DB_DOWN_EMAIL_ALERT_ADDRESS": "",

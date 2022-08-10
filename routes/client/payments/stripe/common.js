@@ -2,7 +2,7 @@ const PaymentCustomer = require('../../../../models/paymentCustomer');
 const stripe = require('stripe')(process.env.STRIPE_TEST_SECRET_KEY);
 
 const getTitlePrice = async () => {
-  return await stripe.prices.retrieve(process.env.DVD_RENT_PRICE_ID);
+  return await stripe.prices.retrieve(process.env.STRIPE_DVD_RENT_PRICE_ID);
 };
 
 const getOrCreatePaymentCustomer = async (userEmail) => {

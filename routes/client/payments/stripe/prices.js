@@ -30,12 +30,13 @@ router.get('/', async (req, res) => {
   }
 
   try {
+    // Both product and subscription prices are returned via this call
     const prices = await stripe.prices.list({ active: true });
     const priceInfo = prices.data.map((price) => {
       let lookupKey = '';
       // Note: only subscription prices can be created with a lookup key.
       // Product prices can be referenced via id
-      if (price.id === process.env.DVD_RENT_PRICE_ID) {
+      if (price.id === process.env.STRIPE_DVD_RENT_PRICE_ID) {
         lookupKey = constants.titlePriceId;
       } else {
         lookupKey = price.lookup_key;
