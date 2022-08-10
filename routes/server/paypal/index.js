@@ -3,30 +3,10 @@ const router = express.Router();
 const fetch = require('node-fetch');
 const bodyParser = require('body-parser');
 const orderUtil = require('../../../utils/order');
-
+const paypalCommon = require('../../client/payments/paypal/common');
 const webhookID = process.env.PAYPAL_WEBHOOK_ID;
 const verifyURL = process.env.PAYPAL_VERIFY_URL;
-const clientID = process.env.PAYPAL_CLIENT_ID;
-const clientSecret = process.env.PAYPAL_CLIENT_SECRET;
-const authURL = process.env.PAYPAL_AUTH_URL;
 const orderInfoURL = process.env.PAYPAL_GET_ORDER_INFO_URL;
-
-// Access token is used to authenticate all REST API requests
-// Taken from https://developer.paypal.com/docs/checkout/advanced/integrate/#link-generateclienttoken
-async function generateAccessToken() {
-  const auth = Buffer.from(clientID + ':' + clientSecret).toString('base64');
-
-  const response = await fetch(authURL, {
-    method: 'POST',
-    body: 'grant_type=client_credentials',
-    headers: {
-      Authorization: `Basic ${auth}`,
-    },
-  });
-
-  const data = await response.json();
-  return data.access_token;
-}
 
 router.post('/webhook', bodyParser.json(), async (req, res) => {
   const payload = req.body;
@@ -49,16 +29,9 @@ router.post('/webhook', bodyParser.json(), async (req, res) => {
     webhook_event: payload,
   };
 
-  if (
-    !webhookID ||
-    !verifyURL ||
-    !clientID ||
-    !clientSecret ||
-    !authURL ||
-    !orderInfoURL
-  ) {
+  if (!webhookID || !verifyURL || !orderInfoURL) {
     const errorParams =
-      'Paypal Webhook Error: webhookID, clientID, clientSecret, authURL, orderInfoURL or verifyURL was found to be empty';
+      'Paypal Webhook Error: webhookID, orderInfoURL or verifyURL was found to be empty';
     console.error(errorParams);
     return res.status(400).send(errorParams);
   }
@@ -78,7 +51,7 @@ router.post('/webhook', bodyParser.json(), async (req, res) => {
   }
 
   try {
-    accessToken = await generateAccessToken();
+    accessToken = await paypalCommon.generateAccessToken();
   } catch (err) {
     const errorConstructEvent = 'Paypal Webhook Error in generateAccessToken: ';
     console.error(errorConstructEvent, err.message);
@@ -86,7 +59,7 @@ router.post('/webhook', bodyParser.json(), async (req, res) => {
   }
 
   try {
-    // let Paypal verify if this was actually sent by them
+    // let Paypal verify if this payload was actually sent by them
     let response = await fetch(verifyURL, {
       method: 'POST',
       body: JSON.stringify(body),
