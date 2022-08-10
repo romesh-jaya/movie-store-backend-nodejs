@@ -3,13 +3,11 @@ const router = express.Router();
 const fetch = require('node-fetch');
 const constants = require('../../../../constants');
 const paypalCommon = require('./common');
-const productsURL = process.env.PAYPAL_GET_PRODUCTS_URL;
+const subscriptionPlansURL = process.env.PAYPAL_GET_PLANS_URL;
 
 router.get('/', async (req, res) => {
-  let savedPaymentCustomer = '';
-  let subscriptionInfo;
   let accessToken;
-  let rentedDVDID;
+  let subscriptionPlans;
 
   try {
     accessToken = await paypalCommon.generateAccessToken();
@@ -20,39 +18,54 @@ router.get('/', async (req, res) => {
   }
 
   try {
-    // get product prices
-    const response = await fetch(productsURL, {
+    // get subscription prices
+    const response = await fetch(subscriptionPlansURL, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${accessToken}`,
+        Prefer: 'return=representation',
       },
     });
     const responseJson = await response.json();
-    if (!(responseJson.products && responseJson.products.length > 0)) {
-      const errorConstructEvent = 'Paypal extracting product prices failed';
+    if (!(responseJson.plans && responseJson.plans.length > 0)) {
+      const errorConstructEvent = 'Paypal extracting subscription plans failed';
       console.error(errorConstructEvent);
       return res.status(400).send(errorConstructEvent);
     }
 
-    const rentedDVDInfo = responseJson.products.find(
-      (product) => product.id === process.env.PAYPAL_DVD_RENT_PRICE_ID
-    );
-
-    if (!rentedDVDInfo) {
-      const errorConstructEvent = 'Paypal extracting Rented DVD price failed';
-      console.error(errorConstructEvent);
-      return res.status(400).send(errorConstructEvent);
-    }
-    rentedDVDID = rentedDVDInfo.id;
+    subscriptionPlans = responseJson.plans;
   } catch (err) {
-    const errorConstructEvent = 'Paypal Error in fetching product prices: ';
+    const errorConstructEvent = 'Paypal Error in fetching subscription plans: ';
     console.error(errorConstructEvent, err.message);
     return res.status(400).send(`${errorConstructEvent} ${err.message}`);
   }
 
-  console.log('rentedDVDID', rentedDVDID);
-  res.send();
+  let priceInfo = [];
+  priceInfo.push({
+    lookupKey: constants.titlePriceId,
+    price: 2, // Paypal has no facility to store the product prices. Hence hardcoding this value
+    currency: 'USD',
+  });
+
+  subscriptionPlans.forEach((plan) => {
+    if (
+      plan.billing_cycles.length > 0 &&
+      plan.billing_cycles[0].pricing_scheme &&
+      plan.billing_cycles[0].pricing_scheme.fixed_price
+    ) {
+      priceInfo.push({
+        lookupKey: plan.name,
+        price: parseFloat(
+          plan.billing_cycles[0].pricing_scheme.fixed_price.value
+        ),
+        currency:
+          plan.billing_cycles[0].pricing_scheme.fixed_price.currency_code,
+      });
+    }
+  });
+
+  res.send({ priceInfo });
 });
 
 module.exports = router;
