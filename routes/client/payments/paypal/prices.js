@@ -61,6 +61,7 @@ router.get('/', async (req, res) => {
         ),
         currency:
           plan.billing_cycles[0].pricing_scheme.fixed_price.currency_code,
+        planIDPayPal: plan.id,
       });
     }
   });
