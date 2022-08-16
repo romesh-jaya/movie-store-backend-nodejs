@@ -5,7 +5,7 @@ const constants = require('../../../../constants');
 const paypalCommon = require('./common');
 const subscriptionPlansURL = process.env.PAYPAL_GET_PLANS_URL;
 
-router.get('/', async (req, res) => {
+router.get('/', async (_, res) => {
   let accessToken;
   let subscriptionPlans;
 

@@ -108,11 +108,7 @@ router.get('/get-user-subscription', async (req, res) => {
       savedPaymentCustomer
     );
     if (subscriptionInfo.lookupKey) {
-      return res.json({
-        lookupKey: subscriptionInfo.lookupKey,
-        cancelAtDate: subscriptionInfo.cancelAtDate,
-        currentPeriodEnd: subscriptionInfo.currentPeriodEnd,
-      });
+      return res.json(subscriptionInfo);
     }
     return res.json({});
   } catch (error) {
