@@ -53,6 +53,8 @@ All fields mentioned in nodemon.json.example must be filled with correct values 
     - PAYPAL_CLIENT_SECRET: Paypal Client Secret,
     - PAYPAL_AUTH_URL: URL to get Paypal auth token,
     - PAYPAL_GET_ORDER_INFO_URL: URL to retrieve a particular order's details from Paypal
+    - PAYPAL_GET_PLANS_URL: URL to get billing plans from PayPal
+    - PAYPAL_GET_SUBSCRIPTION_INFO_URL: URL to get subscription info from PayPal
     
 
 ## Available Scripts
