@@ -19,6 +19,8 @@
     "PAYPAL_CLIENT_ID": "",
     "PAYPAL_CLIENT_SECRET": "",
     "PAYPAL_AUTH_URL": "https://api-m.sandbox.paypal.com/v1/oauth2/token",
-    "PAYPAL_GET_ORDER_INFO_URL": "https://api-m.sandbox.paypal.com/v2/checkout/orders"        
+    "PAYPAL_GET_ORDER_INFO_URL": "https://api-m.sandbox.paypal.com/v2/checkout/orders",
+    "PAYPAL_GET_PLANS_URL": "https://api-m.sandbox.paypal.com/v1/billing/plans",
+    "PAYPAL_GET_SUBSCRIPTION_INFO_URL": "https://api-m.sandbox.paypal.com/v1/billing/subscriptions"            
   }
 }

@@ -5,9 +5,11 @@ const constants = require('../../../../constants');
 const paypalCommon = require('./common');
 const subscriptionPlansURL = process.env.PAYPAL_GET_PLANS_URL;
 
-router.get('/', async (_, res) => {
+router.get('/', async (req, res) => {
+  const { userEmail } = req;
   let accessToken;
   let subscriptionPlans;
+  let subscriptionInfo;
 
   try {
     accessToken = await paypalCommon.generateAccessToken();
@@ -41,10 +43,18 @@ router.get('/', async (_, res) => {
     return res.status(400).send(`${errorConstructEvent} ${err.message}`);
   }
 
+  try {
+    subscriptionInfo = await paypalCommon.getActiveSubscriptionInfo(userEmail);
+  } catch (error) {
+    return res.status(500).json({
+      message: 'Retrieving User Subscriptions failed : ' + error.message,
+    });
+  }
+
   let priceInfo = [];
   priceInfo.push({
     lookupKey: constants.titlePriceId,
-    price: 2, // Paypal has no facility to store the product prices. Hence hardcoding this value
+    price: subscriptionInfo.lookupKey ? 0 : 2, // Paypal has no facility to store the product prices. Hence hardcoding this value
     currency: 'USD',
   });
 
