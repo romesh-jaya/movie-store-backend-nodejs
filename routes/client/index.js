@@ -31,14 +31,12 @@ const jwtCheck = jwt({
 });
 
 // Note: comment the following codeblock for testing without passing an OAuth token
-/*
 router.use(jwtCheck, (err, _, res, __) => {
   console.log('Invalid token provided');
   if (err.name === 'UnauthorizedError') {
     res.status(401).send('Invalid token provided');
   }
 });
-*/
 
 router.use((req, _, next) => {
   // Custom claim is set in the access token via rules.
