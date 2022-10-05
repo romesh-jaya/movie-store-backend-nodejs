@@ -1,3 +1,9 @@
+// ----------------------------------------------------------------------
+// Run this first to provide the required config to other library imports
+const dotenv = require('dotenv');
+dotenv.config();
+// ----------------------------------------------------------------------
+
 const express = require('express');
 const mongoose = require('mongoose');
 const clientRoutes = require('./routes/client');
