@@ -69,6 +69,10 @@ Runs the app in the development mode. Uses variables from nodemon.json.<br />
 
 Starts the app. Need to manually set environment variables.
 
+## Deployment
+
+Whenever a git commit is done, project will auto deploy.
+
 
 
 

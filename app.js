@@ -1,7 +1,10 @@
 // ----------------------------------------------------------------------
 // Run this first to provide the required config to other library imports
-const dotenv = require('dotenv');
-dotenv.config();
+if (process.env.NODE_ENV === 'production') {
+  const dotenv = require('dotenv');
+  console.log('Loading dotenv variables');
+  dotenv.config();
+}
 // ----------------------------------------------------------------------
 
 const express = require('express');

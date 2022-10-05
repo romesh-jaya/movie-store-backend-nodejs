@@ -1,5 +1,5 @@
 {
-  "name": "node-backend",
+  "name": "movie-shop-backend-nodejs",
   "version": "1.0.0",
   "private": true,
   "dependencies": {
@@ -15,8 +15,7 @@
     "stripe": "^8.213.0"
   },
   "scripts": {
-    "build": "",
-    "start": "node server.js",
+    "start": "set NODE_ENV=production&&node server.js",
     "eslint": "eslint **/*.js",
     "start:server": "nodemon server.js"
   },
