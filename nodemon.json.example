@@ -1,6 +1,6 @@
 {
   "env": {
-    "MONGOENDPOINT": "",
+    "MONGOENDPOINT": "mongodb://movieshop_floormeat:pwd@cm7.h.filess.io:27018/movieshop_floormeat",
     "STARTPORT": 5000,
     "ADMIN_USER": "admin@movie-shop.com",
     "OMDB_API_KEY": "",
