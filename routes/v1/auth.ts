@@ -1,6 +1,8 @@
 export {};
 
 const jwt = require('jsonwebtoken');
+import { Request as JWTRequest } from 'express-jwt';
+const checkAuth = require('../../middleware/check-auth');
 import express from 'express';
 const router = express.Router();
 
@@ -13,6 +15,12 @@ router.post('/login', (req, res) => {
     token: token,
     isAdmin: true,
     //refreshToken: refreshToken,
+  });
+});
+
+router.get('/me', checkAuth, (req: JWTRequest, res) => {
+  res.status(200).json({
+    info: req.auth,
   });
 });
 
