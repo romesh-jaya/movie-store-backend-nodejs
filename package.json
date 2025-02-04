@@ -1,5 +1,5 @@
 {
-  "name": "movie-shop-backend-nodejs",
+  "name": "store-checkout-backend-nodejs",
   "version": "1.0.0",
   "private": true,
   "dependencies": {
@@ -8,11 +8,7 @@
     "express": "^4.17.3",
     "express-jwt": "^6.1.1",
     "jwks-rsa": "^2.0.5",
-    "mongoose": "^6.2.4",
-    "mongoose-sequence": "^5.3.1",
-    "node-fetch": "^2.6.7",
-    "nodemailer": "^6.7.5",
-    "stripe": "^8.213.0"
+    "node-fetch": "^2.6.7"
   },
   "scripts": {
     "start": "set NODE_ENV=production&&node server.js",
