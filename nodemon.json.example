@@ -1,0 +1,11 @@
+{
+  "env": {
+    "MONGOENDPOINT": "mongodb://localhost:27017",
+    "HASHSECRET": "fgdfgdfgldfkgjkeer54245465ykdfglkdfglkjdfkgtjl5655465ybgkjcdlgk",
+    "REFRESHSECRET": "4345dgfcbnbgjy8u67856745354fvdbfgfhyhui67867785745tdfbgcvgb",
+    "ADMINUSER": "admin@ad.com",
+    "STARTPORT": 3000,
+    "TOKENEXPIRATION": "1h",
+    "REFRESHTOKENEXPIRATION": "1y"
+  }
+}
