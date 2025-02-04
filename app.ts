@@ -12,6 +12,10 @@ const clientRoutes = require('./routes/client');
 
 const app = express();
 
+const port: number = parseInt(
+  process.env.PORT || process.env.STARTPORT || "3000"
+);
+
 app.use((_, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader(
@@ -31,5 +35,10 @@ app.get('/', function (_, res) {
 });
 
 app.use('/api/client', clientRoutes);
+
+app.listen(port, function () {
+  console.log(`App is listening on port ${port} !`);
+});
+
 
 module.exports = app;

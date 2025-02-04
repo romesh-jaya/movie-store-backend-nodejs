@@ -1,4 +1,6 @@
-const express = require('express');
+export {};
+
+import express from "express";
 const router = express.Router();
 const jwt = require('express-jwt');
 const jwks = require('jwks-rsa');

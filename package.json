@@ -11,16 +11,19 @@
     "node-fetch": "^2.6.7"
   },
   "scripts": {
-    "start": "set NODE_ENV=production&&node server.js",
+    "build": "tsc",
+    "start": "set NODE_ENV=production&&node lib/app.js",
     "eslint": "eslint **/*.js",
-    "start:server": "nodemon server.js"
+    "dev": "nodemon --exec ts-node app.ts"
   },
   "engines": {
-    "node": "17.3.0",
-    "npm": "8.3.0"
+    "node": "20.17.0",
+    "npm": "11.1.0"
   },
   "devDependencies": {
     "eslint": "^8.10.0",
-    "nodemon": "^2.0.15"
+    "nodemon": "^2.0.15",
+    "ts-node": "^10.5.0",
+    "typescript": "^4.5.5"
   }
 }
