@@ -2,7 +2,7 @@ export {};
 
 import express from "express";
 const router = express.Router();
-const jwt = require('express-jwt');
+var { expressjwt: jwt } = require('express-jwt');
 const jwks = require('jwks-rsa');
 const bodyParser = require('body-parser');
 
