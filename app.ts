@@ -8,12 +8,12 @@ if (process.env.NODE_ENV === 'production') {
 // ----------------------------------------------------------------------
 
 const express = require('express');
-const clientRoutes = require('./routes/client');
+const clientRoutes = require('./routes/v1');
 
 const app = express();
 
 const port: number = parseInt(
-  process.env.PORT || process.env.STARTPORT || "3000"
+  process.env.PORT || process.env.STARTPORT || '3000'
 );
 
 app.use((_, res, next) => {
@@ -34,11 +34,10 @@ app.get('/', function (_, res) {
   res.send('Node server is up.');
 });
 
-app.use('/api/client', clientRoutes);
+app.use('/api/v1', clientRoutes);
 
 app.listen(port, function () {
   console.log(`App is listening on port ${port} !`);
 });
-
 
 module.exports = app;

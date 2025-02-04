@@ -1,10 +1,11 @@
 {
   "env": {
-    "MONGOENDPOINT": "mongodb://movieshop_floormeat:pwd@cm7.h.filess.io:27018/movieshop_floormeat",
+    "MONGOENDPOINT": "mongodb://localhost:27017",
+    "HASHSECRET": "fgdfgdfgldfkgjkeer54245465ykdfglkdfglkjdfkgtjl5655465ybgkjcdlgk",
+    "REFRESHSECRET": "4345dgfcbnbgjy8u67856745354fvdbfgfhyhui67867785745tdfbgcvgb",
+    "ADMINUSER": "admin@ad.com",
     "STARTPORT": 3000,
-    "ADMIN_USER": "admin@movie-shop.com",
-    "AUDIENCE": "https://movie-shop-backend",
-    "ISSUER": "https://movie-shop.us.auth0.com/",
-    "JWKS_URI": "https://movie-shop.us.auth0.com/.well-known/jwks.json"
+    "TOKENEXPIRATION": "1h",
+    "REFRESHTOKENEXPIRATION": "1y"
   }
 }
