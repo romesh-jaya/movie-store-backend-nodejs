@@ -1,11 +1,9 @@
-const jwt = require("jsonwebtoken");
+import { Request as JWTRequest } from 'express-jwt';
 
-module.exports = (req, res, next) => {
-  try {
-    const token = req.headers.authorization.split(" ")[1];
-    jwt.verify(token, process.env.HASHSECRET);
-    next();
-  } catch (error) {
-    res.status(401).json({ message: "Authentication failed!" });
+module.exports = (req: JWTRequest, res, next) => {
+  if (!req.auth) {
+    return res.status(401).json({ message: 'Authentication failed!' });
   }
+
+  next();
 };

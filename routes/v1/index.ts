@@ -17,11 +17,11 @@ const jwtCheck = jwt({
 });
 
 // Note: comment the following codeblock for testing without passing an OAuth token
-router.use(jwtCheck, (err, _, res, __) => {
-  console.log('Invalid token provided');
+router.use(jwtCheck, (err, _, res, next) => {
   if (err.name === 'UnauthorizedError') {
-    res.status(401).send('Invalid token provided');
+    return res.status(401).send({ message: 'Invalid token provided' });
   }
+  next(err);
 });
 
 router.use('/auth', authRoutes);
